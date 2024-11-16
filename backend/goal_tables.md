@@ -14,7 +14,7 @@
 | country_noc     | str (country_noc)  ||
 | description     | str (info)         ||
 | spetial_notes   | str (info)         ||
-: Athlete Biography
+: Athlete Biography :
 
 | Column | Type (value) | Pre-process |
 | :-: | :-: | :-- |
@@ -25,13 +25,13 @@
 | event       | str (within the sport)  ||
 | result_id   | int (results)           ||
 | athlete     | str (name)              ||
-: Athlete Event Details
+: Athlete Event Details :
 
 | Column | Type (value) | Pre-process |
 | :-: | :-: | :-- |
 | noc       | str (3-letter word)   ||
 | country   | str (name)            | Remove ROC |
-: Country Profiles
+: Country Profiles :
 
 | Column | Type (value) | Pre-process |
 | :-: | :-: | :-- |
@@ -45,7 +45,7 @@
 | result_location       | str (loc info)                    | Standarize format (city, country) |
 | result_participants   | str (number of people)            ||
 | result_format         | str (description on how to win)   ||
-: Event Results
+: Event Results :
 
 | Column | Type (value) | Pre-process |
 | :-: | :-: | :-- |
@@ -59,7 +59,7 @@
 | start date        | str (datetime)        | Standarize format (datetime)
 | end_date          | str (datetime)        | Standarize format (datetime)
 | competition_date  | str (datetimes)       | Standarize format (datetime)
-: Games Summary
+: Games Summary :
 
 | Column | Type (value) | Pre-process |
 | :-: | :-: | :-- |
@@ -72,7 +72,7 @@
 | silver            | int                   ||
 | bronze            | int                   ||
 | total             | int (sum of previous) ||
-: Medal Tally History
+: Medal Tally History :
 
 1) Map Data
 
