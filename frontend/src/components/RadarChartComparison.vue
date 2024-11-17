@@ -5,7 +5,6 @@
         <div class="chart-container">
           <canvas ref="radarChart"></canvas>
         </div>
-
       </v-col>
     </v-row>
   </v-container>
@@ -17,25 +16,22 @@ import { Chart, RadarController, RadialLinearScale, PointElement, LineElement, F
 Chart.register(RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 export default {
+  props: {
+    userData: {
+      type: Object,
+      required: true
+    },
+    athleteData: {
+      type: Object,
+      default: null
+    }
+  },
   data() {
     return {
-      userData: { height: 0, weight: 0, age: 0, sport: null},
-      sports: ["Athletics", "Swimming", "Basketball"],
-      medalistData: {height: 0, weight: 0, age: 0},
       chart: null,
     };
   },
   methods: {
-    fetchMedalistData() {
-      // Placeholder function to simulate fetching average medalist data for the selected sport
-      if (this.userData.sport) {
-        this.medalistData = {
-          height: 180, // Example values
-          weight: 75,
-          age: 25,
-        };
-      }
-    },
     updateChart() {
       const canvas = this.$refs.radarChart;
       if (!canvas) return;
@@ -47,55 +43,62 @@ export default {
         this.chart.destroy();
       }
 
+      const labels = ["Height", "Weight", "Age"];
+      const userDataset = [this.userData.height, this.userData.weight, this.userData.age];
+      const athleteDataset = this.athleteData
+          ? [this.athleteData.height, this.athleteData.weight, this.athleteData.age]
+          : [0, 0, 0]; // Placeholder if no athlete data is selected
+
       const data = {
-        labels: ["Height", "Weight", "Age"],
+        labels,
         datasets: [
           {
             label: "Your Data",
-            data: [this.userData.height, this.userData.weight, this.userData.age],
+            data: userDataset,
             fill: true,
             backgroundColor: "rgba(54, 162, 235, 0.2)",
-            borderColor: "rgba(54, 162, 235, 1)",
+            borderColor: "rgba(54, 162, 235, 1)"
           },
           {
-            label: "Medalist Average",
-            data: [this.medalistData.height, this.medalistData.weight, this.medalistData.age],
+            label: "Athlete Data",
+            data: athleteDataset,
             fill: true,
             backgroundColor: "rgba(255, 99, 132, 0.2)",
-            borderColor: "rgba(255, 99, 132, 1)",
-          },
-        ],
+            borderColor: "rgba(255, 99, 132, 1)"
+          }
+        ]
       };
 
       const options = {
         responsive: true,
         maintainAspectRatio: false,
-        scale: {
-          ticks: { beginAtZero: true },
-        },
+        scales: {
+          r: {
+            beginAtZero: true
+          }
+        }
       };
+
       this.chart = new Chart(ctx, { type: 'radar', data, options });
+    }
+  },
+  watch: {
+    userData: {
+      handler() {
+        this.updateChart();
+      },
+      deep: true
     },
+    athleteData: {
+      handler() {
+        this.updateChart();
+      },
+      deep: true
+    }
   },
   mounted() {
     this.updateChart();
-  },
-  props: {
-    userDataForm: {
-      type: Object,
-      required: true,
-    },
-  },
-  watch: {
-    userDataForm: {
-      handler(newData) {
-        this.userData = {...newData};
-        this.fetchMedalistData();
-        this.updateChart();
-      },
-      deep: true,
-    },
-  },
+  }
 };
 </script>
 
@@ -107,4 +110,3 @@ export default {
   min-height: 300px;
 }
 </style>
-

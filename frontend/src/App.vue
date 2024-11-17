@@ -3,7 +3,7 @@
     <v-main>
       <v-container fluid>
         <v-row>
-          <!-- UserControlHub spans the full width of the row -->
+          <!-- UserControlHub component-->
           <v-col cols="12">
             <UserControlHub @update-attributes="updateAttributes" />
           </v-col>
@@ -18,10 +18,13 @@
           <!-- RadarChartComparison component -->
           <v-col cols="12" md="3" class="align-height-col">
             <v-row>
-              <RadarChartComparison :userDataForm="userData" />
+              <RadarChartComparison
+                  :userData="userData"
+                  :athleteData="selectedAthleteData"
+              />
             </v-row>
             <v-row>
-              <RadarChartComparison :userDataForm="userData" />
+              <CascadingDropdown @athleteSelected="fetchAthleteData" />
             </v-row>
           </v-col>
 
@@ -32,14 +35,10 @@
         </v-row>
 
         <v-row>
-          <v-col
-              cols="12" sm="6"
-          >
+          <v-col cols="12" sm="6">
             <OutlierIdentification />
           </v-col>
-          <v-col
-              cols="12" sm="6"
-          >
+          <v-col cols="12" sm="6">
             <AthleteAttributeDistribution :userDataForm="userData" />
           </v-col>
         </v-row>
@@ -55,6 +54,7 @@ import AthleteAttributeDistribution from "./components/AthleteAttributeDistribut
 import OutlierIdentification from "./components/OutlierIdentification.vue";
 import AthleteClustering from "./components/AthleteClustering.vue";
 import RadarChartComparison from "./components/RadarChartComparison.vue";
+import CascadingDropdown from "./components/AthleteCascadingDropdown.vue";
 
 export default {
   name: 'App',
@@ -65,6 +65,7 @@ export default {
     OutlierIdentification,
     AthleteClustering,
     RadarChartComparison,
+    CascadingDropdown
   },
   data() {
     return {
@@ -76,21 +77,35 @@ export default {
         sport: '',
         event: ''
       },
+      selectedAthleteData: null // Stores the selected athlete's data
     };
   },
   methods: {
     updateAttributes(sex, height, weight, age, sport, event) {
-      console.log("Props Updated:", { height, weight, age, sport });
-      this.userData.sex = sex;
-      this.userData.height = Number(height);
-      this.userData.weight = Number(weight);
-      this.userData.age = Number(age);
-      this.userData.sport = sport;
-      this.userData.event = event;
+      this.userData = { sex, height: Number(height), weight: Number(weight), age: Number(age), sport, event };
+    },
+    async fetchAthleteData(selection) {
+      console.log("Athlete Selected:", selection);
+
+      // Replace mock with real API call
+      this.selectedAthleteData = await this.fetchAthleteStatsFromBackend();
+    },
+    async fetchAthleteStatsFromBackend() {
+      // Placeholder for actual API call
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            height: 182,
+            weight: 78,
+            age: 24
+          });
+        }, 1000); // Simulate network delay
+      });
     }
   }
 };
 </script>
+
 
 <style scoped>
 .align-height-row {
