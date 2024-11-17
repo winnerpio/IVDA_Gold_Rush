@@ -2,6 +2,19 @@
   <v-app>
     <v-main>
       <v-container fluid>
+        <!-- RangeSlider component -->
+        <v-row>
+          <v-col cols="12">
+            <DateRangeSlider
+                :minYear="1900"
+                :maxYear="2023"
+                :initialRange="[1920, 2005]"
+                @update:range="updateYearRange"
+            />
+            <p>Selected Range: {{ yearRange[0] }} - {{ yearRange[1] }}</p>
+          </v-col>
+        </v-row>
+
         <v-row>
           <!-- UserControlHub component-->
           <v-col cols="12">
@@ -55,6 +68,7 @@ import OutlierIdentification from "./components/OutlierIdentification.vue";
 import AthleteClustering from "./components/AthleteClustering.vue";
 import RadarChartComparison from "./components/RadarChartComparison.vue";
 import CascadingDropdown from "./components/AthleteCascadingDropdown.vue";
+import DateRangeSlider from './components/DateRangeSlider.vue';
 
 export default {
   name: 'App',
@@ -65,7 +79,8 @@ export default {
     OutlierIdentification,
     AthleteClustering,
     RadarChartComparison,
-    CascadingDropdown
+    CascadingDropdown,
+    DateRangeSlider,
   },
   data() {
     return {
@@ -77,12 +92,24 @@ export default {
         sport: '',
         event: ''
       },
-      selectedAthleteData: null // Stores the selected athlete's data
+      yearRange: [1920, 2005], // Year range for the RangeSlider
+      selectedAthleteData: null, // Stores the selected athlete's data
     };
   },
   methods: {
     updateAttributes(sex, height, weight, age, sport, event) {
-      this.userData = { sex, height: Number(height), weight: Number(weight), age: Number(age), sport, event };
+      this.userData = {
+        sex,
+        height: Number(height),
+        weight: Number(weight),
+        age: Number(age),
+        sport,
+        event
+      };
+    },
+    updateYearRange(range) {
+      this.yearRange = range;
+      console.log('Year range updated:', range);
     },
     async fetchAthleteData(selection) {
       console.log("Athlete Selected:", selection);
@@ -105,7 +132,6 @@ export default {
   }
 };
 </script>
-
 
 <style scoped>
 .align-height-row {
