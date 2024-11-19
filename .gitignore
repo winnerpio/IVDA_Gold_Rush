@@ -1,3 +1,4 @@
 .vscode/
 frontend/node_modules/
 backend/backend_venv/
+backend/src/__pycache__
