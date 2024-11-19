@@ -4,7 +4,7 @@ from flask_restx import Resource, Api
 from flask_pymongo import PyMongo
 from flask import request
 from pymongo.collection import Collection
-from .model import Athlete
+from .model import Athlete, Country
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -23,6 +23,7 @@ db = client["olympic_db"]
 
 # Get a reference to the collections
 athletes: Collection = db["athletes"]
+countries: Collection = db["countries"]
 api = Api(app)
 
 class AthleteList(Resource):
@@ -34,4 +35,15 @@ class AthleteList(Resource):
         cursor = athletes.find()
         return [Athlete(**doc).to_json() for doc in cursor]
 
+class CountryList(Resource):
+    def get(self, args=None):
+        # retrieve the arguments and convert to a dict
+        args = request.args.to_dict()
+        print(args)
+        # If the user specified category is "All" we retrieve all companies
+        cursor = countries.find()
+        return [Country(**doc).to_json() for doc in cursor]
+
+
 api.add_resource(AthleteList, '/athletes')
+api.add_resource(AthleteList, '/countries')
