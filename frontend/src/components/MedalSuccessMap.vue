@@ -48,6 +48,14 @@ export default {
       return value === undefined ? "{name}: NA" : "{name}: {value} medals";
     });
 
+    polygonSeries.mapPolygons.template.events.on("click", (event) => {
+      const polygon = event.target;
+      const countryName = polygon._dataItem.dataContext.name;
+      const countryCode = polygon._dataItem.dataContext.id;
+      this.$emit("country-selected", { countryName, countryCode });
+    });
+
+
     polygonSeries.mapPolygons.template.set("interactive", true);
 
     // Define heat rules

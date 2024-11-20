@@ -2,10 +2,29 @@
   <v-app>
     <v-main>
       <v-container fluid>
+        <OlympicDataTopMenu @update-sport-event="handleSportEventUpdate" />
         <v-row class="align-height-row">
           <!-- MedalSuccessMap component -->
           <v-col cols="12" md="4" class="align-height-col">
-            <MedalSuccessMap />
+            <MedalSuccessMap @country-selected="handleCountrySelected"/>
+          </v-col>
+          <!-- CountryPerformanceEvolution component -->
+          <v-col cols="12" md="4" class="d-flex align-center justify-center">
+            <CountryPerformanceEvolution
+                :event="selectedEvent"
+                :sport="selectedSport"
+                :country="selectedCountry.name"
+                :dateRange="[2000, 2020]"
+            />
+          </v-col>
+          <!-- MedalRadialHistogram component -->
+          <v-col cols="12" md="4" class="d-flex align-center justify-center">
+            <MedalRadialHistogram
+                :country="selectedCountry"
+                :sport="selectedSport"
+                :event="selectedEvent"
+                :dateRange="[2000, 2020]"
+            />
           </v-col>
         </v-row>
 
@@ -70,6 +89,9 @@ import AthleteClustering from "./components/AthleteClustering.vue";
 import RadarChartComparison from "./components/RadarChartComparison.vue";
 // import CascadingDropdown from "./components/AthleteCascadingDropdown.vue";
 import DateRangeSlider from './components/DateRangeSlider.vue';
+import CountryPerformanceEvolution from "./components/CountryPerformanceEvolution.vue";
+import MedalRadialHistogram from "./components/MedalRadialHistogram.vue";
+import OlympicDataTopMenu from "@/components/OlympicDataTopMenu.vue";
 
 export default {
   name: 'App',
@@ -82,6 +104,9 @@ export default {
     RadarChartComparison,
     // CascadingDropdown,
     DateRangeSlider,
+    CountryPerformanceEvolution,
+    MedalRadialHistogram,
+    OlympicDataTopMenu,
   },
   data() {
     return {
@@ -93,8 +118,14 @@ export default {
         sport: '',
         event: ''
       },
+      selectedCountry: {
+        name: '',
+        code: '',
+      },
       yearRange: [1920, 2005], // Year range for the RangeSlider
       selectedAthleteData: null, // Stores the selected athlete's data
+      selectedSport: null,
+      selectedEvent: null,
     };
   },
   methods: {
@@ -129,6 +160,14 @@ export default {
           });
         }, 1000); // Simulate network delay
       });
+    },
+    handleSportEventUpdate({ sport, event }) {
+      this.selectedSport = sport;
+      this.selectedEvent = event;
+    },
+    handleCountrySelected ({ countryName, countryCode }) {
+      this.selectedCountry.name = countryName;
+      this.selectedCountry.code = countryCode;
     }
   }
 };
