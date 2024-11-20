@@ -2,6 +2,13 @@
   <v-app>
     <v-main>
       <v-container fluid>
+        <v-row class="align-height-row">
+          <!-- MedalSuccessMap component -->
+          <v-col cols="12" md="4" class="align-height-col">
+            <MedalSuccessMap />
+          </v-col>
+        </v-row>
+
         <!-- RangeSlider component -->
         <v-row>
           <v-col cols="12">
@@ -16,45 +23,39 @@
         </v-row>
 
         <v-row>
-          <!-- UserControlHub component-->
-          <v-col cols="12">
+          <!-- UserControlHub component -->
+          <v-col cols="2">
             <UserControlHub @update-attributes="updateAttributes" />
-          </v-col>
-        </v-row>
-
-        <v-row class="align-height-row">
-          <!-- MedalSuccessMap component -->
-          <v-col cols="12" md="4" class="align-height-col">
-            <MedalSuccessMap />
           </v-col>
 
           <!-- RadarChartComparison component -->
-          <v-col cols="12" md="3" class="align-height-col">
-            <v-row>
-              <RadarChartComparison
-                  :userData="userData"
-                  :athleteData="selectedAthleteData"
-              />
-            </v-row>
-            <v-row>
-              <CascadingDropdown @athleteSelected="fetchAthleteData" />
-            </v-row>
+          <v-col cols="3">
+            <RadarChartComparison
+                :userData="userData"
+                :athleteData="selectedAthleteData"
+            />
           </v-col>
 
+          <!-- AthleteAttributeDistribution component -->
+          <v-col cols="12" md="5">
+            <AthleteAttributeDistribution :userDataForm="userData" />
+          </v-col>
+        </v-row>
+
+
+        <v-row>
+          <v-col cols="12" sm="6">
+            <OutlierIdentification />
+          </v-col>
+        </v-row>
+
+        <v-row>
           <!-- AthleteClustering component -->
           <v-col cols="12" md="5" class="align-height-col">
             <AthleteClustering />
           </v-col>
         </v-row>
 
-        <v-row>
-          <v-col cols="12" sm="6">
-            <OutlierIdentification />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <AthleteAttributeDistribution :userDataForm="userData" />
-          </v-col>
-        </v-row>
       </v-container>
     </v-main>
   </v-app>
@@ -67,7 +68,7 @@ import AthleteAttributeDistribution from "./components/AthleteAttributeDistribut
 import OutlierIdentification from "./components/OutlierIdentification.vue";
 import AthleteClustering from "./components/AthleteClustering.vue";
 import RadarChartComparison from "./components/RadarChartComparison.vue";
-import CascadingDropdown from "./components/AthleteCascadingDropdown.vue";
+// import CascadingDropdown from "./components/AthleteCascadingDropdown.vue";
 import DateRangeSlider from './components/DateRangeSlider.vue';
 
 export default {
@@ -79,7 +80,7 @@ export default {
     OutlierIdentification,
     AthleteClustering,
     RadarChartComparison,
-    CascadingDropdown,
+    // CascadingDropdown,
     DateRangeSlider,
   },
   data() {
@@ -134,18 +135,6 @@ export default {
 </script>
 
 <style scoped>
-.align-height-row {
-  display: flex;
-}
 
-.align-height-col {
-  display: flex;
-  flex-direction: column;
-  justify-content: stretch;
-}
-
-.align-height-col > * {
-  flex: 1;
-  display: flex;
-}
 </style>
+

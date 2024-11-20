@@ -29,9 +29,9 @@ export default {
 
     let chart = this.root.container.children.push(
         am5map.MapChart.new(this.root, {
-          projection: am5map.geoOrthographic(),
+          projection: am5map.geoEqualEarth(),
           panX: "rotateX",
-          panY: "rotateY",
+          panY: "none",
         })
     );
 
