@@ -18,13 +18,14 @@ class Comment(BaseModel):
     def to_json(self):
         return jsonable_encoder(self, exclude_none=True)
 
-class Country(BaseModel):
-    name: str
-    noc: str
-    iso2: str
-    event: str
-    event_id: int
+class MedalTally(BaseModel):
+    edition: str
+    edition_id: int
+    year: int
     sport: str
+    country: str
+    country_noc: str
+    country_iso2: str
     gold: int
     silver: int
     bronze: int
