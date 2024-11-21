@@ -4,7 +4,7 @@ from flask_restx import Resource, Api
 from flask_pymongo import PyMongo
 from flask import request
 from pymongo.collection import Collection
-from .model import Athlete, Country
+from .model import Athlete, MedalTally
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -33,6 +33,7 @@ class AthleteList(Resource):
         print(args)
         # If the user specified category is "All" we retrieve all companies
         cursor = athletes.find()
+        # Filter
         return [Athlete(**doc).to_json() for doc in cursor]
 
 class CountryList(Resource):
@@ -42,8 +43,8 @@ class CountryList(Resource):
         print(args)
         # If the user specified category is "All" we retrieve all companies
         cursor = countries.find()
-        return [Country(**doc).to_json() for doc in cursor]
+        return [MedalTally(**doc).to_json() for doc in cursor]
 
 
 api.add_resource(AthleteList, '/athletes')
-api.add_resource(AthleteList, '/countries')
+api.add_resource(CountryList, '/countries')
