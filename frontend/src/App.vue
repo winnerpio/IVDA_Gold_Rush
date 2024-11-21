@@ -36,12 +36,11 @@
         <v-row>
           <v-col cols="12">
             <DateRangeSlider
-                :minYear="1900"
-                :maxYear="2023"
+                :minYear="1896"
+                :maxYear="2022"
                 :initialRange="[1920, 2005]"
                 @update:range="updateYearRange"
             />
-            <p>Selected Range: {{ yearRange[0] }} - {{ yearRange[1] }}</p>
           </v-col>
         </v-row>
 
