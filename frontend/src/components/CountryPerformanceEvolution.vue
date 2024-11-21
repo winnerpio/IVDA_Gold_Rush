@@ -116,18 +116,16 @@ export default {
         if (!this.sport) missingFields.push('Sport');
         if (!this.event) missingFields.push('Event');
 
-        console.warn(`Chart data will not update because the following fields are missing: ${missingFields.join(', ')}`);
+        console.warn(`Performance chart data will not update because the following fields are missing: ${missingFields.join(', ')}`);
         return;
       }
 
       const data = await this.fetchPerformanceData();
-      console.log(data)
       if (data.length > 0 && this.series) {
         let chartData = data.map((d) => ({
           date: new Date(d.year, 0, 1).getTime(),
           value: d.performance,
         }))
-        console.log(chartData)
         this.series.data.setAll(chartData);
       } else {
         console.warn("No data found for the selected filters.");

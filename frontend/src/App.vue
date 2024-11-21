@@ -22,7 +22,7 @@
               <v-col cols="12"  class="pa-0 mt-n5">
                 <!-- MedalRadialHistogram component -->
                 <MedalRadialHistogram
-                    :country="selectedCountry"
+                    :country="selectedCountry.name"
                     :sport="selectedSport"
                     :event="selectedEvent"
                     :dateRange="[2000, 2020]"
