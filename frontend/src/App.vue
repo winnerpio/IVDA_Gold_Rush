@@ -6,7 +6,7 @@
         <v-row class="align-height-row" no-gutters>
           <!-- MedalSuccessMap component -->
           <v-col cols="7" class="align-height-col">
-            <MedalSuccessMap @country-selected="handleCountrySelected"/>
+            <MedalSuccessMap @country-selected="handleCountrySelected" :yearRange="yearRange" :sport="selectedSport" :event="selectedEvent"/>
           </v-col>
           <v-col cols="5" class="d-flex align-center justify-center">
             <v-row>

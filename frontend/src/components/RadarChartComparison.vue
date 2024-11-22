@@ -346,8 +346,8 @@ export default {
 <style scoped>
 .dropdown-container {
   width: 100%;
-  height: auto; /* Let the height adjust dynamically */
+  height: auto;
   min-height: 300px;
-  max-width: 100%; /* Prevent overflow */
+  max-width: 100%;
 }
 </style>
