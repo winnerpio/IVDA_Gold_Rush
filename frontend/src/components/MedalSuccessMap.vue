@@ -4,13 +4,11 @@
       <!-- Heatmap Display Panel -->
       <v-col cols="12" md="12">
         <v-card outlined class="pa-0" fill-height>
-          <v-card-title>Medal Success Map</v-card-title>
           <v-card-text class="pa-0">
             <div id="medal-map" style="width: 100%; height: 700px;"></div>
           </v-card-text>
         </v-card>
       </v-col>
-
     </v-row>
   </v-container>
 </template>
@@ -23,6 +21,12 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 export default {
   name: "MedalSuccessMap",
+  data(){
+    return{
+      chart: null,
+      initialZoomSettings: null,
+    }
+  },
   mounted() {
     this.root = am5.Root.new("medal-map");
     this.root.setThemes([am5themes_Animated.new(this.root)]);
@@ -43,6 +47,14 @@ export default {
         })
     );
 
+    let zoomControl = chart.set("zoomControl",
+        am5map.ZoomControl.new(this.root, {}));
+    zoomControl.homeButton.set("visible", true);
+
+    chart.chartContainer.get("background").events.on("click", () => {
+      chart.goHome();
+    })
+
     polygonSeries.mapPolygons.template.adapters.add("tooltipText", function (text, target) {
       const value = target.dataItem?.dataContext.value;
       return value === undefined ? "{name}: NA" : "{name}: {value} medals";
@@ -53,6 +65,7 @@ export default {
       const countryName = polygon._dataItem.dataContext.name;
       const countryCode = polygon._dataItem.dataContext.id;
       this.$emit("country-selected", { countryName, countryCode });
+      polygonSeries.zoomToDataItem(polygon.dataItem);
     });
 
 
@@ -260,6 +273,8 @@ export default {
     polygonSeries.mapPolygons.template.adapters.add("fill", function (fill, target) {
       return target.dataItem?.dataContext.value === undefined ? am5.color(0xCCCCCC) : fill;
     });
+
+    chart.appear(1000, 100);
   },
   beforeUnmount() {
     if (this.root) {
