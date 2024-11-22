@@ -72,85 +72,6 @@ export default {
     }
   },
   methods: {
-    async fetchData(sport) {
-      const allData = [
-        { "ax": 8.22, "ay": 2.10, "medal": "silver", "sport": "Swimming" },
-        { "ax": 8.75, "ay": 1.29, "medal": "none", "sport": "Swimming" },
-        { "ax": 5.43, "ay": 0.98, "medal": "gold", "sport": "Swimming" },
-        { "ax": 6.99, "ay": 2.15, "medal": "gold", "sport": "Swimming" },
-        { "ax": 3.73, "ay": 2.80, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 8.21, "ay": 3.44, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 7.26, "ay": 4.07, "medal": "gold", "sport": "Swimming" },
-        { "ax": 3.03, "ay": 3.97, "medal": "none", "sport": "Swimming" },
-        { "ax": 3.98, "ay": 3.06, "medal": "none", "sport": "Swimming" },
-        { "ax": 5.54, "ay": 0.77, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 8.32, "ay": 2.17, "medal": "none", "sport": "Swimming" },
-        { "ax": 8.43, "ay": 1.06, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 8.30, "ay": 4.05, "medal": "silver", "sport": "Swimming" },
-        { "ax": 1.89, "ay": 0.60, "medal": "none", "sport": "Swimming" },
-        { "ax": 2.33, "ay": 2.88, "medal": "gold", "sport": "Swimming" },
-        { "ax": 4.36, "ay": 1.35, "medal": "silver", "sport": "Swimming" },
-        { "ax": 6.56, "ay": 3.77, "medal": "none", "sport": "Swimming" },
-        { "ax": 5.53, "ay": 0.96, "medal": "gold", "sport": "Swimming" },
-        { "ax": 7.46, "ay": 4.24, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 7.18, "ay": 1.50, "medal": "none", "sport": "Swimming" },
-        { "ax": 5.08, "ay": 4.19, "medal": "silver", "sport": "Running" },
-        { "ax": 3.81, "ay": 3.69, "medal": "silver", "sport": "Running" },
-        { "ax": 8.78, "ay": 0.69, "medal": "none", "sport": "Running" },
-        { "ax": 6.89, "ay": 3.33, "medal": "gold", "sport": "Running" },
-        { "ax": 3.66, "ay": 1.75, "medal": "none", "sport": "Running" },
-        { "ax": 4.78, "ay": 4.13, "medal": "silver", "sport": "Running" },
-        { "ax": 4.04, "ay": 2.19, "medal": "silver", "sport": "Running" },
-        { "ax": 7.63, "ay": 2.69, "medal": "silver", "sport": "Running" },
-        { "ax": 6.93, "ay": 1.37, "medal": "gold", "sport": "Running" },
-        { "ax": 3.60, "ay": 2.84, "medal": "silver", "sport": "Running" },
-        { "ax": 9.48, "ay": 0.81, "medal": "none", "sport": "Running" },
-        { "ax": 9.72, "ay": 3.95, "medal": "none", "sport": "Running" },
-        { "ax": 1.77, "ay": 2.84, "medal": "silver", "sport": "Running" },
-        { "ax": 1.61, "ay": 1.45, "medal": "gold", "sport": "Running" },
-        { "ax": 6.90, "ay": 3.73, "medal": "bronze", "sport": "Running" },
-        { "ax": 3.06, "ay": 3.50, "medal": "bronze", "sport": "Running" },
-        { "ax": 2.73, "ay": 4.22, "medal": "gold", "sport": "Running" },
-        { "ax": 1.10, "ay": 3.09, "medal": "none", "sport": "Running" },
-        { "ax": 8.68, "ay": 1.97, "medal": "none", "sport": "Running" },
-        { "ax": 5.65, "ay": 4.61, "medal": "silver", "sport": "Running" },
-        { "ax": 3.20, "ay": 0.81, "medal": "silver", "sport": "Cycling" },
-        { "ax": 6.79, "ay": 3.45, "medal": "none", "sport": "Cycling" },
-        { "ax": 7.23, "ay": 0.95, "medal": "none", "sport": "Cycling" },
-        { "ax": 2.51, "ay": 0.76, "medal": "gold", "sport": "Cycling" },
-        { "ax": 5.47, "ay": 2.46, "medal": "silver", "sport": "Cycling" },
-        { "ax": 5.86, "ay": 2.27, "medal": "silver", "sport": "Cycling" },
-        { "ax": 3.88, "ay": 1.24, "medal": "gold", "sport": "Cycling" },
-        { "ax": 9.97, "ay": 1.50, "medal": "none", "sport": "Cycling" },
-        { "ax": 8.50, "ay": 2.82, "medal": "none", "sport": "Cycling" },
-        { "ax": 6.96, "ay": 3.70, "medal": "silver", "sport": "Cycling" },
-        { "ax": 5.84, "ay": 4.90, "medal": "none", "sport": "Cycling" },
-        { "ax": 5.50, "ay": 2.64, "medal": "silver", "sport": "Cycling" },
-        { "ax": 9.65, "ay": 3.01, "medal": "none", "sport": "Cycling" },
-        { "ax": 5.90, "ay": 0.65, "medal": "none", "sport": "Cycling" },
-        { "ax": 1.25, "ay": 1.80, "medal": "gold", "sport": "Cycling" },
-        { "ax": 9.63, "ay": 3.26, "medal": "silver", "sport": "Cycling" },
-        { "ax": 8.90, "ay": 3.21, "medal": "bronze", "sport": "Cycling" },
-        { "ax": 9.43, "ay": 4.07, "medal": "silver", "sport": "Cycling" },
-        { "ax": 5.17, "ay": 4.66, "medal": "gold", "sport": "Cycling" },
-        { "ax": 2.11, "ay": 3.35, "medal": "none", "sport": "Cycling" }
-      ]
-
-      return allData.filter((d) => d.sport === sport);
-    },
-    async updateChartData(newSport) {
-      if (!newSport) {
-        console.warn("Chart data will not update because no sport is selected.");
-        return;
-      }
-
-      const data = await this.fetchData(newSport);
-      if (data.length > 0 && this.series) {
-        this.series.data.setAll(data);
-      } else {
-        console.warn(`No data found for the selected sport: ${newSport}`);
-      }
-    },
     initChart() {
       this.root = am5.Root.new("outlier-identification");
       this.root.setThemes([am5themes_Animated.new(this.root)]);
@@ -230,11 +151,88 @@ export default {
           am5.Scrollbar.new(this.root, { orientation: "vertical" })
       );
     },
+    async fetchData(sport) {
+      const allData = [
+        { "ax": 8.22, "ay": 2.10, "medal": "silver", "sport": "Swimming" },
+        { "ax": 8.75, "ay": 1.29, "medal": "none", "sport": "Swimming" },
+        { "ax": 5.43, "ay": 0.98, "medal": "gold", "sport": "Swimming" },
+        { "ax": 6.99, "ay": 2.15, "medal": "gold", "sport": "Swimming" },
+        { "ax": 3.73, "ay": 2.80, "medal": "bronze", "sport": "Swimming" },
+        { "ax": 8.21, "ay": 3.44, "medal": "bronze", "sport": "Swimming" },
+        { "ax": 7.26, "ay": 4.07, "medal": "gold", "sport": "Swimming" },
+        { "ax": 3.03, "ay": 3.97, "medal": "none", "sport": "Swimming" },
+        { "ax": 3.98, "ay": 3.06, "medal": "none", "sport": "Swimming" },
+        { "ax": 5.54, "ay": 0.77, "medal": "bronze", "sport": "Swimming" },
+        { "ax": 8.32, "ay": 2.17, "medal": "none", "sport": "Swimming" },
+        { "ax": 8.43, "ay": 1.06, "medal": "bronze", "sport": "Swimming" },
+        { "ax": 8.30, "ay": 4.05, "medal": "silver", "sport": "Swimming" },
+        { "ax": 1.89, "ay": 0.60, "medal": "none", "sport": "Swimming" },
+        { "ax": 2.33, "ay": 2.88, "medal": "gold", "sport": "Swimming" },
+        { "ax": 4.36, "ay": 1.35, "medal": "silver", "sport": "Swimming" },
+        { "ax": 6.56, "ay": 3.77, "medal": "none", "sport": "Swimming" },
+        { "ax": 5.53, "ay": 0.96, "medal": "gold", "sport": "Swimming" },
+        { "ax": 7.46, "ay": 4.24, "medal": "bronze", "sport": "Swimming" },
+        { "ax": 7.18, "ay": 1.50, "medal": "none", "sport": "Swimming" },
+        { "ax": 5.08, "ay": 4.19, "medal": "silver", "sport": "Running" },
+        { "ax": 3.81, "ay": 3.69, "medal": "silver", "sport": "Running" },
+        { "ax": 8.78, "ay": 0.69, "medal": "none", "sport": "Running" },
+        { "ax": 6.89, "ay": 3.33, "medal": "gold", "sport": "Running" },
+        { "ax": 3.66, "ay": 1.75, "medal": "none", "sport": "Running" },
+        { "ax": 4.78, "ay": 4.13, "medal": "silver", "sport": "Running" },
+        { "ax": 4.04, "ay": 2.19, "medal": "silver", "sport": "Running" },
+        { "ax": 7.63, "ay": 2.69, "medal": "silver", "sport": "Running" },
+        { "ax": 6.93, "ay": 1.37, "medal": "gold", "sport": "Running" },
+        { "ax": 3.60, "ay": 2.84, "medal": "silver", "sport": "Running" },
+        { "ax": 9.48, "ay": 0.81, "medal": "none", "sport": "Running" },
+        { "ax": 9.72, "ay": 3.95, "medal": "none", "sport": "Running" },
+        { "ax": 1.77, "ay": 2.84, "medal": "silver", "sport": "Running" },
+        { "ax": 1.61, "ay": 1.45, "medal": "gold", "sport": "Running" },
+        { "ax": 6.90, "ay": 3.73, "medal": "bronze", "sport": "Running" },
+        { "ax": 3.06, "ay": 3.50, "medal": "bronze", "sport": "Running" },
+        { "ax": 2.73, "ay": 4.22, "medal": "gold", "sport": "Running" },
+        { "ax": 1.10, "ay": 3.09, "medal": "none", "sport": "Running" },
+        { "ax": 8.68, "ay": 1.97, "medal": "none", "sport": "Running" },
+        { "ax": 5.65, "ay": 4.61, "medal": "silver", "sport": "Running" },
+        { "ax": 3.20, "ay": 0.81, "medal": "silver", "sport": "Cycling" },
+        { "ax": 6.79, "ay": 3.45, "medal": "none", "sport": "Cycling" },
+        { "ax": 7.23, "ay": 0.95, "medal": "none", "sport": "Cycling" },
+        { "ax": 2.51, "ay": 0.76, "medal": "gold", "sport": "Cycling" },
+        { "ax": 5.47, "ay": 2.46, "medal": "silver", "sport": "Cycling" },
+        { "ax": 5.86, "ay": 2.27, "medal": "silver", "sport": "Cycling" },
+        { "ax": 3.88, "ay": 1.24, "medal": "gold", "sport": "Cycling" },
+        { "ax": 9.97, "ay": 1.50, "medal": "none", "sport": "Cycling" },
+        { "ax": 8.50, "ay": 2.82, "medal": "none", "sport": "Cycling" },
+        { "ax": 6.96, "ay": 3.70, "medal": "silver", "sport": "Cycling" },
+        { "ax": 5.84, "ay": 4.90, "medal": "none", "sport": "Cycling" },
+        { "ax": 5.50, "ay": 2.64, "medal": "silver", "sport": "Cycling" },
+        { "ax": 9.65, "ay": 3.01, "medal": "none", "sport": "Cycling" },
+        { "ax": 5.90, "ay": 0.65, "medal": "none", "sport": "Cycling" },
+        { "ax": 1.25, "ay": 1.80, "medal": "gold", "sport": "Cycling" },
+        { "ax": 9.63, "ay": 3.26, "medal": "silver", "sport": "Cycling" },
+        { "ax": 8.90, "ay": 3.21, "medal": "bronze", "sport": "Cycling" },
+        { "ax": 9.43, "ay": 4.07, "medal": "silver", "sport": "Cycling" },
+        { "ax": 5.17, "ay": 4.66, "medal": "gold", "sport": "Cycling" },
+        { "ax": 2.11, "ay": 3.35, "medal": "none", "sport": "Cycling" }
+      ]
+
+      return allData.filter((d) => d.sport === sport);
+    },
+    async updateChartData(newSport) {
+      if (!newSport) {
+        console.warn("Chart data will not update because no sport is selected.");
+        return;
+      }
+
+      const data = await this.fetchData(newSport);
+      if (data.length > 0 && this.series) {
+        this.series.data.setAll(data);
+      } else {
+        console.warn(`No data found for the selected sport: ${newSport}`);
+      }
+    },
   },
 };
 </script>
-
-
 
 <style scoped>
 </style>
