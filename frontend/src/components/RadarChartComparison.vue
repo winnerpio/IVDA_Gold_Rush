@@ -21,7 +21,7 @@
                       v-model="selectedAthlete"
                       item-value="props"
                       item-text="title"
-                      :disabled="!selectedCountry"
+                      :disabled="!selectedCountry || !sport || !event"
                   ></v-select>
                 </v-col>
               </v-row>
@@ -54,38 +54,100 @@ import {
 Chart.register(RadarController, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 export default {
+  props: {
+    sport: {
+      type: String,
+      required: true,
+    },
+    event: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       chart: null,
       selectedCountry: null,
       selectedAthlete: null,
-      countries: ["USA", "Canada", "Germany", "China"], // Example countries
-      filteredAthletes: [], // Athletes filtered by selectedCountry
+      countries: ["USA", "China", "Germany", "Canada"], // Example countries
+      filteredAthletes: [], // Athletes filtered by selectedCountry, sport, and event
       userData: {
         height: 175,
         weight: 70,
         age: 25,
+        medals: 10,
+        performance: 179,
       },
       athleteList: [
         {
           title: "Athlete A",
-          props: { id: 1, country: "USA", height: 180, weight: 75, age: 26, name: "Athlete A" },
+          props: {
+            id: 1,
+            country: "USA",
+            sport: "Swimming",
+            event: "200m Freestyle",
+            height: 180,
+            weight: 75,
+            age: 26,
+            medals: 8,
+            performance: 200,
+          },
         },
         {
           title: "Athlete B",
-          props: { id: 2, country: "China", height: 170, weight: 65, age: 24, name: "Athlete B" },
+          props: {
+            id: 2,
+            country: "China",
+            sport: "Running",
+            event: "100m",
+            height: 170,
+            weight: 65,
+            age: 24,
+            medals: 12,
+            performance: 220,
+          },
         },
         {
           title: "Athlete C",
-          props: { id: 3, country: "USA", height: 185, weight: 80, age: 28, name: "Athlete C" },
+          props: {
+            id: 3,
+            country: "USA",
+            sport: "Swimming",
+            event: "200m Freestyle",
+            height: 185,
+            weight: 80,
+            age: 28,
+            medals: 6,
+            performance: 190,
+          },
         },
         {
           title: "Athlete D",
-          props: { id: 4, country: "Germany", height: 178, weight: 72, age: 27, name: "Athlete D" },
+          props: {
+            id: 4,
+            country: "Germany",
+            sport: "Cycling",
+            event: "Road Race",
+            height: 178,
+            weight: 72,
+            age: 27,
+            medals: 9,
+            performance: 210,
+          },
         },
         {
           title: "Athlete E",
-          props: { id: 5, country: "Canada", height: 172, weight: 68, age: 23, name: "Athlete E" },
+          props: {
+            id: 5,
+            country: "Canada",
+            sport: "Running",
+            event: "200m",
+            height: 172,
+            weight: 68,
+            age: 23,
+            medals: 15,
+            performance: 230,
+          },
         },
       ],
     };
@@ -102,16 +164,23 @@ export default {
         this.chart.destroy();
       }
 
-      const labels = ["Height", "Weight", "Age"];
-      const userDataset = [this.userData.height, this.userData.weight, this.userData.age];
-      const athleteDataset =
-          this.selectedAthlete
-              ? [
-                this.selectedAthlete.height,
-                this.selectedAthlete.weight,
-                this.selectedAthlete.age,
-              ]
-              : [0, 0, 0];
+      const labels = ["Height", "Weight", "Age", "Number of Medals", "Performance"];
+      const userDataset = [
+        this.userData.height,
+        this.userData.weight,
+        this.userData.age,
+        this.userData.medals,
+        this.userData.performance,
+      ];
+      const athleteDataset = this.selectedAthlete
+          ? [
+            this.selectedAthlete.height,
+            this.selectedAthlete.weight,
+            this.selectedAthlete.age,
+            this.selectedAthlete.medals,
+            this.selectedAthlete.performance,
+          ]
+          : [0, 0, 0, 0, 0];
 
       const data = {
         labels,
@@ -145,17 +214,20 @@ export default {
 
       this.chart = new Chart(ctx, { type: "radar", data, options });
     },
-    fetchAthletes() {
+    filterAthletes() {
       this.filteredAthletes = this.athleteList.filter(
-          (athlete) => athlete.props.country === this.selectedCountry
+          (athlete) =>
+              athlete.props.country === this.selectedCountry &&
+              athlete.props.sport === this.sport &&
+              athlete.props.event === this.event
       );
       this.selectedAthlete = null;
     },
   },
   watch: {
-    selectedCountry() {
-      this.fetchAthletes();
-    },
+    selectedCountry: "filterAthletes",
+    sport: "filterAthletes",
+    event: "filterAthletes",
     selectedAthlete() {
       this.updateChart();
     },
@@ -168,19 +240,9 @@ export default {
 
 <style scoped>
 .dropdown-container {
-  position: relative;
   width: 100%;
-  height: 100%;
+  height: auto; /* Let the height adjust dynamically */
   min-height: 300px;
+  max-width: 100%; /* Prevent overflow */
 }
-
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  padding: 20px;
-}
-
-
 </style>

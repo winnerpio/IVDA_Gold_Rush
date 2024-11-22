@@ -45,37 +45,50 @@
         </v-row>
 
         <v-row>
-          <!-- UserControlHub component -->
-          <v-col cols="2">
-            <UserControlHub @update-attributes="updateAttributes" />
+          <v-col cols="6">
+            <v-row>
+              <!-- UserControlHub component -->
+              <v-col cols="6">
+                <UserControlHub @update-attributes="updateAttributes" />
+              </v-col>
+
+              <!-- RadarChartComparison component -->
+              <v-col cols="6">
+                <RadarChartComparison
+                    :userData="userData"
+                    :athleteData="selectedAthleteData"
+                    :sport="selectedSport"
+                    :event="selectedEvent"
+                    :selectedCountry="selectedCountry"
+                />
+
+              </v-col>
+            </v-row>
+            <v-row>
+              <!-- OutlierIdentification component -->
+              <v-col cols="12">
+                <OutlierIdentification />
+              </v-col>
+            </v-row>
+            <v-row>
+              <!-- AthleteClustering component -->
+              <v-col cols="12">
+                <AthleteClustering />
+              </v-col>
+            </v-row>
           </v-col>
 
-          <!-- RadarChartComparison component -->
-          <v-col cols="3">
-            <RadarChartComparison
-                :userData="userData"
-                :athleteData="selectedAthleteData"
-            />
-          </v-col>
-
-          <!-- AthleteAttributeDistribution component -->
-          <v-col cols="12" md="5">
-            <AthleteAttributeDistribution :userDataForm="userData" />
+          <v-col cols="6">
+            <!-- AthleteAttributeDistribution component -->
+            <v-col cols="12">
+              <AthleteAttributeDistribution :userDataForm="userData" />
+            </v-col>
           </v-col>
         </v-row>
 
 
         <v-row>
-          <v-col cols="12" sm="6">
-            <OutlierIdentification />
-          </v-col>
-        </v-row>
 
-        <v-row>
-          <!-- AthleteClustering component -->
-          <v-col cols="12" md="5" class="align-height-col">
-            <AthleteClustering />
-          </v-col>
         </v-row>
 
       </v-container>
@@ -116,8 +129,8 @@ export default {
         height: 0,
         weight: 0,
         age: 0,
-        sport: '',
-        event: ''
+        numMedals: 0,
+        bestPerformance: ""
       },
       selectedCountry: {
         name: '',
@@ -130,14 +143,14 @@ export default {
     };
   },
   methods: {
-    updateAttributes(sex, height, weight, age, sport, event) {
+    updateAttributes(sex, height, weight, age, medals, performance) {
       this.userData = {
         sex,
         height: Number(height),
         weight: Number(weight),
         age: Number(age),
-        sport,
-        event
+        numMedals: Number(medals),
+        performance
       };
     },
     updateYearRange(range) {
