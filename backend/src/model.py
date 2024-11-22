@@ -27,7 +27,7 @@ class Comment(BaseModel):
     def to_json(self):
         return jsonable_encoder(self, exclude_none=True)
 
-class WorldHistory(BaseModel):
+class Country(BaseModel):
     edition: str        
     edition_id: int     
     year: int           
