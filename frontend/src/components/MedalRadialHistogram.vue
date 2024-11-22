@@ -46,15 +46,17 @@ export default {
         am5themes_Animated.new(this.root)
       ]);
 
-      let chart = this.root.container.children.push(am5radar.RadarChart.new(this.root, {
-        panX: false,
-        panY: false,
-        wheelX: "none",
-        wheelY: "none",
-        startAngle: -84,
-        endAngle: 264,
-        innerRadius: am5.percent(40)
-      }));
+      let chart = this.root.container.children.push(
+          am5radar.RadarChart.new(this.root, {
+            panX: false,
+            panY: false,
+            wheelX: "none",
+            wheelY: "none",
+            startAngle: -84,
+            endAngle: 264,
+            innerRadius: am5.percent(40)
+          })
+      );
 
       const cursor = chart.set("cursor", am5radar.RadarCursor.new(this.root, {
         behavior: "zoomX"

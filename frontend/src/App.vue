@@ -55,7 +55,7 @@
               <!-- RadarChartComparison component -->
               <v-col cols="6">
                 <RadarChartComparison
-                    :userData="userData"
+                    :userDataForm="userData"
                     :athleteData="selectedAthleteData"
                     :sport="selectedSport"
                     :event="selectedEvent"
