@@ -42,21 +42,25 @@ class WorldMapList(Resource):
     # Return a list of dictionaries {id: iso2, value: total_medals}
     # Possible arguments: None, sport, event
     def get(self, args=None):
-
-        # retrieve the arguments and convert to a dict
+        # Retrieve the arguments from the request
         args = request.args.to_dict()
-        print(args)
-        cursor = countries.find()
-        
-        # Extract list of companies
-        countries_data = [Country(**doc).to_json() for doc in cursor]
-        output = []
-        for c in countries_data:
-            output.append({"id": c["country_iso2"], "value": c["total"]})
 
-        # we return all companies as json
+        # Build the query based on the provided arguments
+        query = {}
+        if 'sport' in args:
+            query['sport'] = args['sport']
+        if 'event' in args:
+            query['event'] = args['event']
+
+        # Query the MongoDB collection with the constructed query
+        cursor = countries.find(query)
+
+        # Extract the data and format it as required
+        countries_data = [Country(**doc).to_json() for doc in cursor]
+        output = [{"id": c["country_iso2"], "value": c["total"]} for c in countries_data]
+
+        # Return the output as JSON
         return output
-    
         
 
 class AthleteList(Resource):
