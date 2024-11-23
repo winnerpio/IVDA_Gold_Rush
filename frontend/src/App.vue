@@ -2,7 +2,7 @@
   <v-app>
     <v-main>
       <v-container fluid>
-        <OlympicDataTopMenu @update-sport-event="handleSportEventUpdate" />
+        <OlympicDataTopMenu @update-sport-event="handleSportEventUpdate" :yearRange="yearRange"/>
         <v-row class="align-height-row" no-gutters>
           <!-- MedalSuccessMap component -->
           <v-col cols="7" class="align-height-col">
