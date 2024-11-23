@@ -26,10 +26,12 @@
 </template>
 
 <script>
+
 import { ref, computed, onMounted, watch } from "vue";
 
 export default {
   name: "OlympicDataTopMenu",
+
   setup(_, { emit }) {
     const selectedSport = ref(null);
     const selectedEvent = ref(null);
@@ -37,10 +39,11 @@ export default {
     const events = ref([]);
 
     const filteredEvents = computed(() =>
-        events.value
-            .filter((event) => event.subtitle === selectedSport.value)
-            .map((event) => event.title)
+      events.value
+        .filter((event) => event.sport === selectedSport.value)
+        .map((event) => event.event)
     );
+
 
     const fetchSports = async () => {
       sports.value = ["Athletics", "Swimming", "Gymnastics"];
@@ -54,11 +57,14 @@ export default {
         { subtitle: "Swimming", title: "200m Freestyle" },
         { subtitle: "Gymnastics", title: "Floor Exercise" },
       ];
+
     };
 
     watch(selectedEvent, (newEvent) => {
       if (newEvent) {
+
         emit("update-sport-event", { sport: selectedSport.value, event: newEvent });
+
       }
     });
 
@@ -66,9 +72,9 @@ export default {
       selectedEvent.value = null;
     });
 
+    // Fetch data on mount
     onMounted(() => {
-      fetchSports();
-      fetchEvents();
+      fetchSportsAndEvents([1896, 2022]);
     });
 
     return {
@@ -77,6 +83,13 @@ export default {
       sports,
       filteredEvents,
     };
+  },
+  props: {
+    yearRange: {
+      type: Array,
+      required: true,
+      default: () => [1896, 2022],
+    },
   },
 };
 </script>

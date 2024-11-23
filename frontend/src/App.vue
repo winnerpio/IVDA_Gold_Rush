@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-main>
+
       <!-- Sidebar -->
       <OlympicSidebar
           :minYear="minYear"
@@ -119,6 +120,7 @@
           </v-carousel-item>
         </v-carousel>
       </div>
+
     </v-main>
   </v-app>
 </template>
