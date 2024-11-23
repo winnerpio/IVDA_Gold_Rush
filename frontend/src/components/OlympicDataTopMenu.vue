@@ -27,39 +27,54 @@
 
 <script>
 import { ref, computed, onMounted, watch } from 'vue';
+import axios from 'axios';
 
 export default {
   name: 'OlympicDataTopMenu',
+  data() {
+    return {
+      selectedYearRange: [1896, 2022],
+    };
+  },
   setup(_, { emit }) {
     const selectedSport = ref(null);
     const selectedEvent = ref(null);
     const sports = ref([]); // All available sports
     const events = ref([]); // All available events
     const filteredEvents = computed(() =>
-        events.value
-            .filter((event) => event.subtitle === selectedSport.value)
-            .map((event) => event.title)
+      events.value
+        .filter((event) => event.sport === selectedSport.value)
+        .map((event) => event.event)
     );
 
-    // Mock fetch function, replace with actual API or logic
-    const fetchSports = async () => {
-      sports.value = ['Athletics', 'Swimming', 'Gymnastics'];
-    };
+    // Fetch sports and events using the SportEventList API
+    const fetchSportsAndEvents = async (yearRange) => {
+      try {
+        const response = await axios.get('http://127.0.0.1:5000/SportEventList', {
+          params: {
+            year_lower: yearRange[0],
+            year_upper: yearRange[1],
+          },
+        });
 
-    const fetchEvents = async () => {
-      events.value = [
-        { subtitle: 'Athletics', title: '100m' },
-        { subtitle: 'Athletics', title: '200m' },
-        { subtitle: 'Swimming', title: '100m Freestyle' },
-        { subtitle: 'Swimming', title: '200m Freestyle' },
-        { subtitle: 'Gymnastics', title: 'Floor Exercise' },
-      ];
+        console.log(yearRange[0]);
+        console.log(yearRange[1]);
+        const data = response.data;
+
+        // Extract sports and events from the API response
+        sports.value = Object.keys(data);
+        events.value = Object.entries(data).flatMap(([sport, eventList]) =>
+          eventList.map((event) => ({ sport, event }))
+        );
+      } catch (error) {
+        console.error('Error fetching sports and events:', error);
+      }
     };
 
     // Emit sport and event whenever the event changes
     watch(selectedEvent, (newEvent) => {
       if (newEvent) {
-        emit('update-sport-event', {sport: selectedSport.value, event: newEvent});
+        emit('update-sport-event', { sport: selectedSport.value, event: newEvent });
       }
     });
 
@@ -68,9 +83,9 @@ export default {
       selectedEvent.value = null; // Reset the event
     });
 
+    // Fetch data on mount
     onMounted(() => {
-      fetchSports();
-      fetchEvents();
+      fetchSportsAndEvents([1896, 2022]);
     });
 
     return {
@@ -79,6 +94,13 @@ export default {
       sports,
       filteredEvents,
     };
+  },
+  props: {
+    yearRange: {
+      type: Array,
+      required: true,
+      default: () => [1896, 2022],
+    },
   },
 };
 </script>
