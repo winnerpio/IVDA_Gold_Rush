@@ -233,11 +233,16 @@ export default {
 .v-carousel-item {
   display: flex;
   justify-content: center;
+  align-items: center;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
 }
 
 .v-container {
   width: 95%; /* Adjust the width as needed */
   max-width: 1200px; /* Optional: Limit the maximum width */
+  
 }
 
 .v-card {
