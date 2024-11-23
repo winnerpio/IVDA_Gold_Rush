@@ -75,7 +75,7 @@ export default {
   props: {
     dateRange: {
       type: Array,
-      default: () => [1896, 2020],
+      default: () => [1896, 2023],
     },
   },
   data() {
@@ -403,7 +403,7 @@ export default {
     },
   },
   watch: {
-    filteredOlympicData: {
+    dateRange: {
       immediate: true,
       handler() {
         this.destroyCharts();
@@ -426,7 +426,6 @@ export default {
   },
   mounted() {
     this.generateMockData();
-    // Initial rendering is handled by the watchers
   },
 };
 </script>
