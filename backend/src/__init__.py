@@ -146,7 +146,7 @@ def get_medal_count(countries_data, year_lower, year_upper, sport=None, event=No
     
     for item in countries_data:
         year = item["year"]
-        country_noc = item["country_noc"]
+        country_noc = item["country_iso2"]
         item_sport = item["sport"][0]  
         item_event = item["sport"][1]
 
@@ -160,7 +160,7 @@ def get_medal_count(countries_data, year_lower, year_upper, sport=None, event=No
 
 
         if country_noc not in result:
-            result[country_noc] = {}  
+            result[country_noc] = {"all": {"gold": 0, "silver": 0, "bronze": 0, "total": 0}}
 
         if year not in result[country_noc]:
             result[country_noc][year] = {"gold": 0, "silver": 0, "bronze": 0, "total": 0}
@@ -170,25 +170,30 @@ def get_medal_count(countries_data, year_lower, year_upper, sport=None, event=No
         result[country_noc][year]["bronze"] += item["bronze"]
         result[country_noc][year]["total"] += item["total"]
 
+        result[country_noc]["all"]["gold"] += item["gold"]
+        result[country_noc]["all"]["silver"] += item["silver"]
+        result[country_noc]["all"]["bronze"] += item["bronze"]
+        result[country_noc]["all"]["total"] += item["total"]
+
     return result
 
 
 class MedalCount(Resource):
     def get(self, args=None):
-        # retrieve the arguments and convert to a dict
+        # Sample usage http://127.0.0.1:5000/MedalCount?year_lower=2000&year_upper=2010
         args = request.args.to_dict()
         print(args)
-
-        # Example Usage: http://127.0.0.1:5000/athletes?id=65649
-        # http://127.0.0.1:5000/athletes?sex=Male&medal=Gold
-        
+        sport = None
+        event = None
         # If the user specified category is "All" we retrieve all companies
         if args == {}:
             args = {'year_lower': 1920, "year_upper": 1928, "sport": None, "event": None}
-        year_lower = args["year_lower"]
-        year_upper = args["year_upper"]
-        sport = args["sport"]
-        event = args["event"]
+        if "sport" in args:
+            sport = args["sport"]
+        if "event" in args:
+            event = args["event"]
+        year_lower = int(args["year_lower"])
+        year_upper = int(args["year_upper"])
         
 
         cursor = countries.find()

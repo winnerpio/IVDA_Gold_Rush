@@ -28,7 +28,7 @@ class Country(BaseModel):
     sport: list          
     country: str
     country_noc: str    
-    # country_iso2: str removed for now
+    country_iso2: str
     gold: int           
     silver: int         
     bronze: int         
