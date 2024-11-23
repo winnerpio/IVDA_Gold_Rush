@@ -81,7 +81,10 @@
           <v-col cols="6">
             <!-- AthleteAttributeDistribution component -->
             <v-col cols="12">
-              <AthleteAttributeDistribution :userDataForm="userData" />
+              <AthleteAttributeDistribution
+                :userDataForm="userData"
+                :dateRange="yearRange"
+              />
             </v-col>
           </v-col>
         </v-row>
