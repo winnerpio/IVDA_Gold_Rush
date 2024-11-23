@@ -217,7 +217,7 @@ export default {
   transition: margin-left 0.2s ease-in-out, max-width 0.2s ease-in-out;
 }
 
-.main-content{
+.main-content.with-sidebar {
   margin-left: 350px;
   max-width: calc(100% - 350px);
 }
@@ -228,5 +228,19 @@ export default {
 
 .align-height-col {
   height: 100%;
+}
+
+.v-carousel-item {
+  display: flex;
+  justify-content: center;
+}
+
+.v-container {
+  width: 95%; /* Adjust the width as needed */
+  max-width: 1200px; /* Optional: Limit the maximum width */
+}
+
+.v-card {
+  width: 100%; /* Make the card take the full width of the container */
 }
 </style>
