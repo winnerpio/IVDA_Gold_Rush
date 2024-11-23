@@ -45,10 +45,9 @@
     <div v-if="isPanelOpen">
       <div class="fullscreen-overlay" @click="toggleFullscreen"></div>
       <div class="fullscreen-panel">
-        <!-- Close Button -->
         <button @click="toggleFullscreen" class="close-btn">×</button>
         <div class="panel-content">
-          <h1>Olympic Data by Year</h1>
+          <h1>{{ dynamicPanelTitle }}</h1>
           <div v-for="data in filteredOlympicData" :key="data.Year" class="year-charts">
             <h2>Year: {{ data.Year }}</h2>
             <div :id="'canvas-container-' + data.Year" class="chart-container">
@@ -84,6 +83,12 @@ export default {
     };
   },
   computed: {
+    dynamicPanelTitle() {
+      const capitalizedAttribute =
+        this.selectedAttribute.charAt(0).toUpperCase() +
+        this.selectedAttribute.slice(1);
+      return `${capitalizedAttribute} Distribution during Selected Years`;
+    },
     attributeGroups() {
       if (this.selectedAttribute === "age") {
         return ["<19", "20-24", "25-29", "30-34", ">35"];
@@ -179,86 +184,71 @@ export default {
       return { attributeDistribution, medalCount };
     },
     async updateMainGraph() {
-      const { attributeDistribution, medalCount } =
-        this.computeAttributeDistribution();
+      const { attributeDistribution, medalCount } = this.computeAttributeDistribution();
       const labels = this.attributeGroups;
       const athleteData = labels.map((label) => attributeDistribution[label]);
       const medalData = labels.map((label) => medalCount[label]);
 
+      // Destroy existing chart instance if it exists
       if (this.mainGraphInstance) {
         this.mainGraphInstance.destroy();
         this.mainGraphInstance = null;
-        // Clear the canvas
-        const mainCanvas = document.getElementById("mainGraph");
-        if (mainCanvas) {
-          const ctx = mainCanvas.getContext('2d');
-          ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-        }
       }
 
-      await this.$nextTick();
+      await this.$nextTick(); // Ensure the DOM is updated
 
       const canvas = document.getElementById("mainGraph");
-
       if (!canvas) {
         console.error("Canvas element not found!");
         return;
       }
 
       const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        console.error("Canvas context is null!");
+        return;
+      }
 
-      const histogramData = {
-        labels: labels,
-        datasets: [
-          {
-            type: "bar",
-            label: `${
-              this.selectedAttribute.charAt(0).toUpperCase() +
-              this.selectedAttribute.slice(1)
-            } Distribution`,
-            data: athleteData,
-            backgroundColor: "rgba(100, 149, 237, 0.7)",
-            borderColor: "rgba(100, 149, 237, 1)",
-            borderWidth: 1,
-          },
-          {
-            type: "line",
-            label: "Medal Count",
-            data: medalData,
-            borderColor: "rgba(220, 20, 60, 0.8)",
-            backgroundColor: "rgba(220, 20, 60, 0.2)",
-            fill: false,
-            borderWidth: 2,
-            tension: 0.4,
-            yAxisID: "y2",
-          },
-        ],
-      };
-
-      const config = {
+      // Create a new chart
+      this.mainGraphInstance = new Chart(ctx, {
         type: "bar",
-        data: histogramData,
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: "bar",
+              label: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Distribution`,
+              data: athleteData,
+              backgroundColor: "rgba(100, 149, 237, 0.7)",
+              borderColor: "rgba(100, 149, 237, 1)",
+              borderWidth: 1,
+            },
+            {
+              type: "line",
+              label: "Medal Count",
+              data: medalData,
+              borderColor: "rgba(220, 20, 60, 0.8)",
+              backgroundColor: "rgba(220, 20, 60, 0.2)",
+              fill: false,
+              borderWidth: 2,
+              tension: 0.4,
+              yAxisID: "y2",
+            },
+          ],
+        },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           plugins: {
             legend: { position: "top" },
             title: {
               display: true,
-              text: `${
-                this.selectedAttribute.charAt(0).toUpperCase() +
-                this.selectedAttribute.slice(1)
-              } Distribution and Medal Count`,
+              text: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Distribution and Medal Count`,
             },
           },
           scales: {
             x: {
-              title: {
-                display: true,
-                text: `${
-                  this.selectedAttribute.charAt(0).toUpperCase() +
-                  this.selectedAttribute.slice(1)
-                } Groups`,
-              },
+              title: { display: true, text: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Groups` },
             },
             y: {
               title: { display: true, text: "Number of Athletes" },
@@ -272,127 +262,104 @@ export default {
             },
           },
         },
-      };
-
-      this.mainGraphInstance = new Chart(ctx, config);
+      });
     },
     async drawOlympicCharts() {
       await this.$nextTick();
 
       this.filteredOlympicData.forEach((data) => {
         const canvasId = `combinedChart-${data.Year}`;
-        const canvasContainer = document.getElementById(
-          `canvas-container-${data.Year}`
-      );
+        const canvasContainer = document.getElementById(`canvas-container-${data.Year}`);
 
-    if (!canvasContainer) {
-      console.error(`Canvas container ${canvasId} not found!`);
-      return;
-    }
+        if (!canvasContainer) {
+          console.error(`Canvas container ${canvasId} not found!`);
+          return;
+        }
 
-    // Clear the canvas
-    const existingCanvas = document.getElementById(canvasId);
-    if (existingCanvas) {
-      const ctx = existingCanvas.getContext('2d');
-      ctx.clearRect(0, 0, existingCanvas.width, existingCanvas.height);
-    }
+        let canvas = document.getElementById(canvasId);
+        if (!canvas) {
+          canvas = document.createElement("canvas");
+          canvas.id = canvasId;
+          canvasContainer.appendChild(canvas);
+        }
 
-    const canvas = existingCanvas || document.createElement('canvas');
-    if (!existingCanvas) {
-      canvas.id = canvasId;
-      canvasContainer.appendChild(canvas);
-    }
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          console.error("Canvas context is null!");
+          return;
+        }
 
-    const ctx = canvas.getContext("2d");
+        // Destroy existing chart instance if it exists
+        if (this.chartInstances[canvasId]) {
+          this.chartInstances[canvasId].destroy();
+          delete this.chartInstances[canvasId];
+        }
 
-    const attributeGroups = this.attributeGroups;
-    const groupData = data[`${this.selectedAttribute}Groups`];
-    const medals = data.MedalsByGroup[this.selectedAttribute];
-
-    const chartInstance = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: attributeGroups,
-        datasets: [
-          {
-            type: "bar",
-            label: `Age Distribution`,
-            data: attributeGroups.map((group) => groupData[group] || 0),
-            backgroundColor: "rgba(100, 149, 237, 0.7)", // 통일된 색상
-            borderColor: "rgba(100, 149, 237, 1)",
-            borderWidth: 1,
+        // Create a new chart and store it in chartInstances
+        this.chartInstances[canvasId] = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: this.attributeGroups,
+            datasets: [
+              {
+                type: "bar",
+                label: `Age Distribution (${data.Year})`,
+                data: this.attributeGroups.map((group) => data[`${this.selectedAttribute}Groups`][group] || 0),
+                backgroundColor: "rgba(100, 149, 237, 0.7)",
+                borderColor: "rgba(100, 149, 237, 1)",
+                borderWidth: 1,
+              },
+              {
+                type: "line",
+                label: `Medals (${data.Year})`,
+                data: data.MedalsByGroup[this.selectedAttribute],
+                borderColor: "rgba(220, 20, 60, 0.8)",
+                backgroundColor: "rgba(220, 20, 60, 0.2)",
+                fill: false,
+                borderWidth: 2,
+                tension: 0.4,
+                yAxisID: "y2",
+              },
+            ],
           },
-          {
-            type: "line",
-            label: "Medal Count",
-            data: medals,
-            borderColor: "rgba(220, 20, 60, 0.8)", // 통일된 색상
-            backgroundColor: "rgba(220, 20, 60, 0.2)",
-            fill: false,
-            borderWidth: 2,
-            tension: 0.4,
-            yAxisID: "y2",
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: "top" },
-          title: {
-            display: true,
-            text: "Age Distribution and Medal Count", // 통일된 타이틀
-          },
-        },
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: "Age Groups", // 통일된 X축 라벨
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: "top" },
+              title: { display: true, text: "Age Distribution and Medal Count" },
+            },
+            scales: {
+              x: { title: { display: true, text: "Age Groups" } },
+              y: {
+                title: { display: true, text: "Number of Athletes" },
+                beginAtZero: true,
+              },
+              y2: {
+                title: { display: true, text: "Medal Count" },
+                position: "right",
+                beginAtZero: true,
+                grid: { drawOnChartArea: false },
+              },
             },
           },
-          y: {
-            title: { display: true, text: "Number of Athletes" }, // 통일된 Y축 라벨
-            beginAtZero: true,
-          },
-          y2: {
-            type: "linear",
-            position: "right",
-            title: { display: true, text: "Medal Count" }, // 통일된 보조 Y축 라벨
-            grid: { drawOnChartArea: false },
-            beginAtZero: true,
-          },
-        },
-      },
-    });
-
-    // Store the chart instance for later destruction
-    this.chartInstances[canvasId] = chartInstance;
-  });
-},
+        });
+      });
+    },
     destroyCharts() {
       // Destroy main graph instance
       if (this.mainGraphInstance) {
         this.mainGraphInstance.destroy();
         this.mainGraphInstance = null;
-        // Clear the canvas
-        const mainCanvas = document.getElementById("mainGraph");
-        if (mainCanvas) {
-          const ctx = mainCanvas.getContext('2d');
-          ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
-        }
       }
 
-      // Destroy existing chart instances
-      Object.entries(this.chartInstances).forEach(([canvasId, chart]) => {
-        chart.destroy();
-        const canvas = document.getElementById(canvasId);
-        if (canvas) {
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Destroy all Olympic chart instances
+      Object.keys(this.chartInstances).forEach((canvasId) => {
+        const chart = this.chartInstances[canvasId];
+        if (chart) {
+          chart.destroy();
         }
+        delete this.chartInstances[canvasId];
       });
-      this.chartInstances = {};
     },
     async toggleFullscreen() {
       this.isPanelOpen = !this.isPanelOpen;
@@ -446,7 +413,6 @@ export default {
   width: 100%;
 }
 
-/* '+' button style */
 .menu-button {
   position: absolute;
   top: 10px;
@@ -465,7 +431,6 @@ export default {
   transform: scale(1.2);
 }
 
-/* Attribute Selection */
 .attribute-selection {
   margin-bottom: 20px;
   display: flex;
@@ -477,7 +442,6 @@ export default {
   margin-right: 15px;
 }
 
-/* Main Graph */
 .graph-container {
   width: 100%;
   max-width: 1200px;
@@ -489,7 +453,6 @@ export default {
   height: auto;
 }
 
-/* Expandable Panel */
 .fullscreen-panel {
   position: fixed;
   overflow-y: auto;
@@ -503,6 +466,10 @@ export default {
   padding: 20px;
   z-index: 1000;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .fullscreen-overlay {
@@ -516,14 +483,26 @@ export default {
 }
 
 .chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 90%;
-  height: 40%;
+  height: 400px;
   margin: 20px 0;
-  text-align: center;
 }
 
 .year-charts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 40px;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
 
 .close-btn {
@@ -548,8 +527,12 @@ export default {
 }
 
 .panel-content h1 {
-  font-size: 32px;
-  margin-bottom: 20px;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.panel-content h2 {
+  font-size: 18px;
 }
 
 .chart-container {
