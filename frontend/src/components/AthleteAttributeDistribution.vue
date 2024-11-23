@@ -1,5 +1,10 @@
 <template>
   <div class="layout-container">
+    <!-- '+' Button -->
+    <div v-if="!isPanelOpen" class="menu-button">
+      <button class="plus-icon" @click="toggleFullscreen">+</button>
+    </div>
+
     <!-- Attribute Selection -->
     <div class="attribute-selection">
       <label class="custom-radio">
@@ -31,38 +36,28 @@
       </label>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Attribute Distribution and Medal Count -->
-      <div class="graph-container">
-        <canvas id="mainGraph"></canvas>
-      </div>
+    <!-- Main Graph -->
+    <div class="graph-container">
+      <canvas id="mainGraph"></canvas>
+    </div>
 
-      <!-- Olympic Data by Year -->
-      <div class="panel-content">
-        <h1>Olympic Data by Year</h1>
-        <div v-if="filteredOlympicData.length > 0">
-          <!-- Filtered Data Charts -->
-          <div
-            v-for="data in filteredOlympicData"
-            :key="data.Year"
-            class="year-charts"
-          >
+    <!-- Expandable Panel -->
+    <div v-if="isPanelOpen">
+      <div class="fullscreen-overlay" @click="toggleFullscreen"></div>
+      <div class="fullscreen-panel">
+        <button @click="toggleFullscreen" class="close-btn">×</button>
+        <div class="panel-content">
+          <h1>{{ dynamicPanelTitle }}</h1>
+          <div v-for="data in filteredOlympicData" :key="data.Year" class="year-charts">
             <h2>Year: {{ data.Year }}</h2>
-            <div
-              class="chart-container"
-              :id="'canvas-container-' + data.Year"
-            >
-              <!-- Canvas will be managed by Vue -->
+            <div :id="'canvas-container-' + data.Year" class="chart-container">
               <canvas :id="'combinedChart-' + data.Year"></canvas>
             </div>
           </div>
         </div>
-        <div v-else>
-          <p>No data available for the selected range.</p>
-        </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -80,18 +75,19 @@ export default {
   },
   data() {
     return {
-      selectedAttribute: "age", // Default attribute
+      selectedAttribute: "age",
       mainGraphInstance: null,
       olympicData: [],
       chartInstances: {},
+      isPanelOpen: false,
     };
   },
   computed: {
-    filteredOlympicData() {
-      return this.olympicData.filter(
-        (data) =>
-          data.Year >= this.dateRange[0] && data.Year <= this.dateRange[1]
-      );
+    dynamicPanelTitle() {
+      const capitalizedAttribute =
+        this.selectedAttribute.charAt(0).toUpperCase() +
+        this.selectedAttribute.slice(1);
+      return `${capitalizedAttribute} Distribution during Selected Years`;
     },
     attributeGroups() {
       if (this.selectedAttribute === "age") {
@@ -102,6 +98,12 @@ export default {
         return ["<160cm", "160-170cm", "170-180cm", "180-190cm", ">190cm"];
       }
       return [];
+    },
+    filteredOlympicData() {
+      return this.olympicData.filter(
+        (data) =>
+          data.Year >= this.dateRange[0] && data.Year <= this.dateRange[1]
+      );
     },
   },
   methods: {
@@ -181,45 +183,41 @@ export default {
       });
       return { attributeDistribution, medalCount };
     },
-    updateMainGraph() {
-      const { attributeDistribution, medalCount } =
-        this.computeAttributeDistribution();
+    async updateMainGraph() {
+      const { attributeDistribution, medalCount } = this.computeAttributeDistribution();
       const labels = this.attributeGroups;
       const athleteData = labels.map((label) => attributeDistribution[label]);
       const medalData = labels.map((label) => medalCount[label]);
 
+      // Destroy existing chart instance if it exists
       if (this.mainGraphInstance) {
         this.mainGraphInstance.destroy();
-        // Reset the canvas
-        const mainCanvas = document.getElementById("mainGraph");
-        if (mainCanvas) {
-          const parent = mainCanvas.parentNode;
-          parent.removeChild(mainCanvas);
-          const newCanvas = document.createElement("canvas");
-          newCanvas.id = "mainGraph";
-          parent.appendChild(newCanvas);
-        }
+        this.mainGraphInstance = null;
       }
 
-      this.$nextTick(() => {
-        const canvas = document.getElementById("mainGraph");
+      await this.$nextTick(); // Ensure the DOM is updated
 
-        if (!canvas) {
-          console.error("Canvas element not found!");
-          return;
-        }
+      const canvas = document.getElementById("mainGraph");
+      if (!canvas) {
+        console.error("Canvas element not found!");
+        return;
+      }
 
-        const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        console.error("Canvas context is null!");
+        return;
+      }
 
-        const histogramData = {
+      // Create a new chart
+      this.mainGraphInstance = new Chart(ctx, {
+        type: "bar",
+        data: {
           labels: labels,
           datasets: [
             {
               type: "bar",
-              label: `${
-                this.selectedAttribute.charAt(0).toUpperCase() +
-                this.selectedAttribute.slice(1)
-              } Distribution`,
+              label: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Distribution`,
               data: athleteData,
               backgroundColor: "rgba(100, 149, 237, 0.7)",
               borderColor: "rgba(100, 149, 237, 1)",
@@ -237,33 +235,101 @@ export default {
               yAxisID: "y2",
             },
           ],
-        };
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "top" },
+            title: {
+              display: true,
+              text: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Distribution and Medal Count`,
+            },
+          },
+          scales: {
+            x: {
+              title: { display: true, text: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Groups` },
+            },
+            y: {
+              title: { display: true, text: "Number of Athletes" },
+              beginAtZero: true,
+            },
+            y2: {
+              title: { display: true, text: "Medal Count" },
+              position: "right",
+              beginAtZero: true,
+              grid: { drawOnChartArea: false },
+            },
+          },
+        },
+      });
+    },
+    async drawOlympicCharts() {
+      await this.$nextTick();
 
-        const config = {
+      this.filteredOlympicData.forEach((data) => {
+        const canvasId = `combinedChart-${data.Year}`;
+        const canvasContainer = document.getElementById(`canvas-container-${data.Year}`);
+
+        if (!canvasContainer) {
+          console.error(`Canvas container ${canvasId} not found!`);
+          return;
+        }
+
+        let canvas = document.getElementById(canvasId);
+        if (!canvas) {
+          canvas = document.createElement("canvas");
+          canvas.id = canvasId;
+          canvasContainer.appendChild(canvas);
+        }
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          console.error("Canvas context is null!");
+          return;
+        }
+
+        // Destroy existing chart instance if it exists
+        if (this.chartInstances[canvasId]) {
+          this.chartInstances[canvasId].destroy();
+          delete this.chartInstances[canvasId];
+        }
+
+        // Create a new chart and store it in chartInstances
+        this.chartInstances[canvasId] = new Chart(ctx, {
           type: "bar",
-          data: histogramData,
+          data: {
+            labels: this.attributeGroups,
+            datasets: [
+              {
+                type: "bar",
+                label: `Age Distribution (${data.Year})`,
+                data: this.attributeGroups.map((group) => data[`${this.selectedAttribute}Groups`][group] || 0),
+                backgroundColor: "rgba(100, 149, 237, 0.7)",
+                borderColor: "rgba(100, 149, 237, 1)",
+                borderWidth: 1,
+              },
+              {
+                type: "line",
+                label: `Medals (${data.Year})`,
+                data: data.MedalsByGroup[this.selectedAttribute],
+                borderColor: "rgba(220, 20, 60, 0.8)",
+                backgroundColor: "rgba(220, 20, 60, 0.2)",
+                fill: false,
+                borderWidth: 2,
+                tension: 0.4,
+                yAxisID: "y2",
+              },
+            ],
+          },
           options: {
             responsive: true,
             plugins: {
               legend: { position: "top" },
-              title: {
-                display: true,
-                text: `${
-                  this.selectedAttribute.charAt(0).toUpperCase() +
-                  this.selectedAttribute.slice(1)
-                } Distribution and Medal Count`,
-              },
+              title: { display: true, text: "Age Distribution and Medal Count" },
             },
             scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: `${
-                    this.selectedAttribute.charAt(0).toUpperCase() +
-                    this.selectedAttribute.slice(1)
-                  } Groups`,
-                },
-              },
+              x: { title: { display: true, text: "Age Groups" } },
               y: {
                 title: { display: true, text: "Number of Athletes" },
                 beginAtZero: true,
@@ -276,97 +342,6 @@ export default {
               },
             },
           },
-        };
-
-        this.mainGraphInstance = new Chart(ctx, config);
-      });
-    },
-    drawOlympicCharts() {
-      this.$nextTick(() => {
-        this.filteredOlympicData.forEach((data) => {
-          const canvasId = `combinedChart-${data.Year}`;
-          const canvasContainer = document.getElementById(
-            `canvas-container-${data.Year}`
-          );
-
-          // Reset the canvas
-          if (canvasContainer) {
-            canvasContainer.innerHTML = `<canvas id="${canvasId}"></canvas>`;
-          }
-
-          const canvas = document.getElementById(canvasId);
-          if (!canvas) return;
-
-          const ctx = canvas.getContext("2d");
-
-          const attributeGroups = this.attributeGroups;
-          const groupData = data[`${this.selectedAttribute}Groups`];
-          const medals = data.MedalsByGroup[this.selectedAttribute];
-
-          const chartInstance = new Chart(ctx, {
-            type: "bar",
-            data: {
-              labels: attributeGroups,
-              datasets: [
-                {
-                  type: "bar",
-                  label: `Number of Athletes (${data.Year})`,
-                  data: attributeGroups.map(
-                    (group) => groupData[group] || 0
-                  ),
-                  backgroundColor: "rgba(75, 192, 192, 0.7)",
-                  borderColor: "rgba(75, 192, 192, 1)",
-                  borderWidth: 1,
-                },
-                {
-                  type: "line",
-                  label: `Medals (${data.Year})`,
-                  data: medals,
-                  borderColor: "rgba(220, 20, 60, 0.7)",
-                  backgroundColor: "rgba(220, 20, 60, 0.2)",
-                  fill: false,
-                  borderWidth: 2,
-                  tension: 0.4,
-                  yAxisID: "y2",
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: { position: "top" },
-                title: {
-                  display: true,
-                  text: `Combined Chart (${data.Year})`,
-                },
-              },
-              scales: {
-                x: {
-                  title: {
-                    display: true,
-                    text: `${
-                      this.selectedAttribute.charAt(0).toUpperCase() +
-                      this.selectedAttribute.slice(1)
-                    } Groups`,
-                  },
-                },
-                y: {
-                  title: { display: true, text: "Number of Athletes" },
-                  beginAtZero: true,
-                },
-                y2: {
-                  type: "linear",
-                  position: "right",
-                  title: { display: true, text: "Medal Count" },
-                  grid: { drawOnChartArea: false },
-                  beginAtZero: true,
-                },
-              },
-            },
-          });
-
-          // Store the chart instance for later destruction
-          this.chartInstances[canvasId] = chartInstance;
         });
       });
     },
@@ -374,67 +349,86 @@ export default {
       // Destroy main graph instance
       if (this.mainGraphInstance) {
         this.mainGraphInstance.destroy();
-        // Reset the canvas
-        const mainCanvas = document.getElementById("mainGraph");
-        if (mainCanvas) {
-          const parent = mainCanvas.parentNode;
-          parent.removeChild(mainCanvas);
-          const newCanvas = document.createElement("canvas");
-          newCanvas.id = "mainGraph";
-          parent.appendChild(newCanvas);
-        }
         this.mainGraphInstance = null;
       }
 
-      // Destroy existing chart instances
-      Object.entries(this.chartInstances).forEach(([canvasId, chart]) => {
-        chart.destroy();
-        // Reset the canvas
-        const canvas = document.getElementById(canvasId);
-        if (canvas) {
-          const parent = canvas.parentNode;
-          parent.removeChild(canvas);
-          const newCanvas = document.createElement("canvas");
-          newCanvas.id = canvasId;
-          parent.appendChild(newCanvas);
+      // Destroy all Olympic chart instances
+      Object.keys(this.chartInstances).forEach((canvasId) => {
+        const chart = this.chartInstances[canvasId];
+        if (chart) {
+          chart.destroy();
         }
+        delete this.chartInstances[canvasId];
       });
-      this.chartInstances = {};
+    },
+    async toggleFullscreen() {
+      this.isPanelOpen = !this.isPanelOpen;
+
+      if (this.isPanelOpen) {
+        this.destroyCharts();
+        await this.$nextTick();
+        await this.drawOlympicCharts();
+      } else {
+        this.destroyCharts();
+        await this.$nextTick();
+        this.updateMainGraph();
+      }
     },
   },
   watch: {
-    dateRange: {
+    filteredOlympicData: {
       immediate: true,
-      handler() {
-        this.destroyCharts();
-        this.$nextTick(() => {
+      async handler() {
+        if (!this.isPanelOpen) {
+          this.destroyCharts();
+          await this.$nextTick();
           this.updateMainGraph();
-          this.drawOlympicCharts();
-        });
+        }
       },
     },
     selectedAttribute: {
       immediate: true,
-      handler() {
-        this.destroyCharts();
-        this.$nextTick(() => {
+      async handler() {
+        if (!this.isPanelOpen) {
+          this.destroyCharts();
+          await this.$nextTick();
           this.updateMainGraph();
-          this.drawOlympicCharts();
-        });
+        }
       },
     },
   },
-  mounted() {
+  async mounted() {
     this.generateMockData();
+    await this.$nextTick();
+    this.updateMainGraph();
   },
 };
 </script>
 
 <style scoped>
 .layout-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+
+.menu-button {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2000;
+}
+
+.plus-icon {
+  font-size: 32px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.plus-icon:hover {
+  transform: scale(1.2);
 }
 
 .attribute-selection {
@@ -448,12 +442,6 @@ export default {
   margin-right: 15px;
 }
 
-.main-content {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
 .graph-container {
   width: 100%;
   max-width: 1200px;
@@ -465,18 +453,91 @@ export default {
   height: auto;
 }
 
+.fullscreen-panel {
+  position: fixed;
+  overflow-y: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background-color: #f5f5f5;
+  overflow-y: auto;
+  padding: 20px;
+  z-index: 1000;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.fullscreen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 90%;
+  height: 400px;
+  margin: 20px 0;
+}
+
+.year-charts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.close-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  color: black;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 2000;
+}
+
+.close-btn:hover {
+  color: #aaa;
+}
+
 .panel-content {
   text-align: center;
   width: 100%;
 }
 
-.year-charts {
-  margin-top: 20px;
-  width: 100%;
+.panel-content h1 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.panel-content h2 {
+  font-size: 18px;
 }
 
 .chart-container {
-  width: 100%;
-  height: auto;
+  width: 90%;
+  height: 40%;
+  margin: 20px 0;
 }
 </style>

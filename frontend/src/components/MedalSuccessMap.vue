@@ -5,7 +5,7 @@
       <v-col cols="12" md="12">
         <v-card outlined class="pa-0" fill-height>
           <v-card-text class="pa-0">
-            <div id="medal-map" style="width: 100%; height: 700px;"></div>
+            <div id="medal-map" style="width: 100%; height: 750px;"></div>
           </v-card-text>
         </v-card>
       </v-col>
