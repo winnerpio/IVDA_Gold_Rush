@@ -16,99 +16,114 @@
       <!-- Main Content -->
       <div :class="['main-content', { 'with-sidebar': is_expanded }]">
         <!-- Carousel -->
-        <v-carousel hide-delimiters show-arrows style="height: auto">
+        <v-carousel hide-delimiters show-arrows="hover" style="height: auto">
           <!-- Slide 1 -->
           <v-carousel-item>
-            <v-card outlined class="pa-4">
-              <v-card-title>Explore Medal Success by Country, Sport, and Event</v-card-title>
-              <v-card-text>
-                <v-row class="align-height-row" no-gutters>
-                  <v-col cols="7" class="align-height-col">
-                    <MedalSuccessMap
-                        @country-selected="handleCountrySelected"
-                        :yearRange="yearRange"
-                        :sport="selectedSport"
-                        :event="selectedEvent"
-                    />
-                  </v-col>
-                  <v-col cols="5" class="d-flex align-center justify-center">
-                    <v-row>
-                      <v-col cols="12" class="pa-0 mb-n3 mt-n0">
-                        <CountryPerformanceEvolution
-                            :event="selectedEvent"
-                            :sport="selectedSport"
-                            :country="selectedCountry.name"
-                            :dateRange="[2000, 2020]"
-                        />
-                      </v-col>
-                      <v-col cols="12" class="pa-0 mt-n5">
-                        <MedalRadialHistogram
-                            :country="selectedCountry.name"
-                            :sport="selectedSport"
-                            :event="selectedEvent"
-                            :dateRange="[2000, 2020]"
-                        />
-                      </v-col>
-                    </v-row>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
+            <v-container outlined class="pa-4" fluid>
+              <v-card outlined>
+                <v-card-title style="text-align: center; justify-content: center;">Explore Medal Success by Country, Sport, and Event</v-card-title>
+                <v-card-text>
+                  <v-row class="align-height-row" no-gutters>
+                    <div class="container">
+
+                    </div>
+                    <v-col cols="7" class="align-height-col">
+                      <MedalSuccessMap
+                          @country-selected="handleCountrySelected"
+                          :yearRange="yearRange"
+                          :sport="selectedSport"
+                          :event="selectedEvent"
+                      />
+                    </v-col>
+                    <v-col cols="5" class="d-flex align-center justify-center">
+                      <v-row>
+                        <v-col cols="12" class="pa-0 mb-n3 mt-n0">
+                          <CountryPerformanceEvolution
+                              :event="selectedEvent"
+                              :sport="selectedSport"
+                              :country="selectedCountry.name"
+                              :dateRange="[2000, 2020]"
+                          />
+                        </v-col>
+                        <v-col cols="12" class="pa-0 mt-n5">
+                          <MedalRadialHistogram
+                              :country="selectedCountry.name"
+                              :sport="selectedSport"
+                              :event="selectedEvent"
+                              :dateRange="[2000, 2020]"
+                          />
+                        </v-col>
+                      </v-row>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+            </v-container>
           </v-carousel-item>
 
           <!-- Slide 2 -->
           <v-carousel-item>
-            <v-card outlined class="pa-4">
-              <v-card-title>Compare Yourself with Olympic Medalists</v-card-title>
-              <v-card-text>
-                <RadarChartComparison
-                    :userDataForm="userData"
-                    :athleteData="selectedAthleteData"
-                    :sport="selectedSport"
-                    :event="selectedEvent"
-                    :selectedCountry="selectedCountry"
-                />
-              </v-card-text>
-            </v-card>
+            <v-container outlined class="pa-4" fluid>
+              <v-card outlined>
+                <v-card-title style="text-align: center; justify-content: center;">Compare Yourself with Olympic Medalists</v-card-title>
+                <v-card-text>
+                  <RadarChartComparison
+                      :userDataForm="userData"
+                      :athleteData="selectedAthleteData"
+                      :sport="selectedSport"
+                      :event="selectedEvent"
+                      :selectedCountry="selectedCountry"
+                  />
+                </v-card-text>
+              </v-card>
+            </v-container>
           </v-carousel-item>
 
           <!-- Slide 3 -->
           <v-carousel-item>
-            <v-card outlined class="pa-4">
-              <v-card-title>Identify Outliers Among Successful Athletes</v-card-title>
-              <v-card-text>
-                <OutlierIdentification />
-              </v-card-text>
-            </v-card>
+            <v-container outlined class="pa-4" fluid>
+              <v-card outlined>
+                <v-card-title style="text-align: center; justify-content: center;">Identify Outliers Among Successful Athletes</v-card-title>
+                <v-card-text>
+                  <OutlierIdentification />
+                </v-card-text>
+              </v-card>
+            </v-container>
           </v-carousel-item>
 
           <!-- Slide 4 -->
           <v-carousel-item>
-            <v-card outlined class="pa-4">
-              <v-card-title>Discover Similar Athletes Using Clustering</v-card-title>
-              <v-card-text>
-                <AthleteClustering />
-              </v-card-text>
-            </v-card>
+            <v-container outlined class="pa-4" fluid>
+              <v-card outlined>
+                <v-card-title style="text-align: center; justify-content: center;">Discover Similar Athletes Using Clustering</v-card-title>
+                <v-card-text>
+                  <AthleteClustering />
+                </v-card-text>
+              </v-card>
+            </v-container>
           </v-carousel-item>
 
           <!-- Slide 5 -->
           <v-carousel-item>
-            <v-card outlined class="pa-4">
-              <v-card-title>Explore Attribute Distributions Among Athletes</v-card-title>
-              <v-card-text>
-                <AthleteAttributeDistribution
-                    :userDataForm="userData"
-                    :dateRange="yearRange"
-                />
-              </v-card-text>
-            </v-card>
+            <v-container outlined class="pa-4" fluid>
+              <v-card outlined>
+                <v-card-title style="text-align: center; justify-content: center;">Explore Attribute Distributions Among Athletes</v-card-title>
+                <v-card-text>
+                  <AthleteAttributeDistribution
+                      :userDataForm="userData"
+                      :dateRange="yearRange"
+                  />
+                </v-card-text>
+              </v-card>
+            </v-container>
           </v-carousel-item>
         </v-carousel>
       </div>
     </v-main>
   </v-app>
 </template>
+
+
 
 <script>
 import MedalSuccessMap from "./components/MedalSuccessMap.vue";
@@ -151,6 +166,8 @@ export default {
       selectedSport: null,
       selectedEvent: null,
       is_expanded: false,
+      minYear: 1896,
+      maxYear: 2022,
     };
   },
   methods: {
@@ -200,7 +217,7 @@ export default {
   transition: margin-left 0.2s ease-in-out, max-width 0.2s ease-in-out;
 }
 
-.main-content.with-sidebar {
+.main-content{
   margin-left: 350px;
   max-width: calc(100% - 350px);
 }
