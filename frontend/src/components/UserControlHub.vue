@@ -1,82 +1,86 @@
 <template>
-  <v-container class="container" fluid>
-    <v-card class="form-card" outlined>
-      <v-form class="form-container">
-        <div class="row">
-          <v-select
-              :items="sex"
-              v-model="userAttributes.sex"
-              label="Sex"
-              dense
-              outlined
-              hide-details
-              class="field"
-          />
-          <v-text-field
-              v-model="userAttributes.height"
-              label="Height (cm)"
-              type="number"
-              dense
-              outlined
-              hide-details
-              class="field"
-          />
-        </div>
-        <div class="row">
-          <v-text-field
-              v-model="userAttributes.weight"
-              label="Weight (kg)"
-              type="number"
-              dense
-              outlined
-              hide-details
-              class="field"
-          />
-          <v-text-field
-              v-model="userAttributes.age"
-              label="Age"
-              type="number"
-              dense
-              outlined
-              hide-details
-              class="field"
-          />
-        </div>
-        <div class="row">
-          <v-text-field
-              v-model="userAttributes.numMedals"
-              label="Number of Medals"
-              type="number"
-              dense
-              outlined
-              hide-details
-              class="field"
-          />
-          <v-text-field
-              v-model="userAttributes.bestPerformance"
-              label="Best Performance"
-              type="text"
-              dense
-              outlined
-              hide-details
-              class="field"
-          />
-        </div>
-      </v-form>
-      <v-btn color="primary" icon @click="applyAttributes" class="submit-btn">
-        <v-icon left>mdi-send</v-icon>
-      </v-btn>
-    </v-card>
-  </v-container>
+  <div class="user-control-hub">
+    <h2>User Attributes</h2>
+    <v-form>
+      <!-- Sex -->
+      <v-select
+          :items="sex"
+          v-model="userAttributes.sex"
+          label="Sex"
+          dense
+          outlined
+          hide-details
+          class="field"
+          @blur="submitAttributes"
+          @keydown.enter="handleEnter"
+      />
+      <!-- Height -->
+      <v-text-field
+          v-model="userAttributes.height"
+          label="Height (cm)"
+          type="number"
+          dense
+          outlined
+          hide-details
+          class="field"
+          @blur="submitAttributes"
+          @keydown.enter="handleEnter"
+      />
+      <!-- Weight -->
+      <v-text-field
+          v-model="userAttributes.weight"
+          label="Weight (kg)"
+          type="number"
+          dense
+          outlined
+          hide-details
+          class="field"
+          @blur="submitAttributes"
+          @keydown.enter="handleEnter"
+      />
+      <!-- Age -->
+      <v-text-field
+          v-model="userAttributes.age"
+          label="Age"
+          type="number"
+          dense
+          outlined
+          hide-details
+          class="field"
+          @blur="submitAttributes"
+          @keydown.enter="handleEnter"
+      />
+      <!-- Number of Medals -->
+      <v-text-field
+          v-model="userAttributes.medals"
+          label="Medals"
+          type="number"
+          dense
+          outlined
+          hide-details
+          class="field"
+          @blur="submitAttributes"
+          @keydown.enter="handleEnter"
+      />
+      <!-- Performance -->
+      <v-text-field
+          v-model="userAttributes.performance"
+          label="Performance"
+          type="text"
+          dense
+          outlined
+          hide-details
+          class="field"
+          @blur="submitAttributes"
+          @keydown.enter="handleEnter"
+      />
+    </v-form>
+  </div>
 </template>
-
-
-
 
 <script>
 export default {
   name: "UserControlHub",
-
   data() {
     return {
       userAttributes: {
@@ -84,71 +88,67 @@ export default {
         height: null,
         weight: null,
         age: null,
-        numMedals: null,
-        bestPerformance: "",
+        medals: null,
+        performance: "",
       },
-      sex: ["Male", "Female", "All"]
+      sex: ["Male", "Female", "All"],
     };
   },
   methods: {
-    applyAttributes() {
-      this.$emit(
-          "update-attributes",
-          this.userAttributes.sex,
-          this.userAttributes.height,
-          this.userAttributes.weight,
-          this.userAttributes.age,
-          this.userAttributes.numMedals,
-          this.userAttributes.bestPerformance
-      );
-    }
-  }
+    submitAttributes() {
+      const updatedAttributes = {
+        ...this.userAttributes,
+        medals: this.userAttributes.medals
+            ? Number(this.userAttributes.medals)
+            : null,
+      };
+
+      this.$emit("update-attributes", updatedAttributes);
+    },
+    handleEnter(event) {
+      this.submitAttributes();
+      event.target.blur();
+    },
+  },
 };
 </script>
 
-
 <style scoped>
-.form-container{
+.user-control-hub {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 80%;
-  width: 80%;
+  padding: 15px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%; /* Occupy the full width of the sidebar */
+  box-sizing: border-box;
 }
 
-.form-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-}
-
-.container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  width: 100%;
-  margin-bottom: 30px;
+h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 15px;
+  color: #333;
+  text-align: center;
 }
 
 .field {
-  width: 100%;
-
+  margin-bottom: 15px;
+  width: 100%; /* Dynamically resize with the parent container */
 }
 
-.submit-btn {
-  margin-top: -50px;
+.field:last-child {
+  margin-bottom: 0; /* Remove margin for the last field */
+}
+
+@media (max-width: 600px) {
+  .user-control-hub {
+    padding: 10px; /* Adjust padding for smaller screens */
+  }
+
+  h2 {
+    font-size: 1rem; /* Adjust heading size for smaller screens */
+  }
 }
 </style>

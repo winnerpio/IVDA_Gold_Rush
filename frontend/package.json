@@ -11,6 +11,8 @@
     "@amcharts/amcharts5": "^5.10.7",
     "@amcharts/amcharts5-geodata": "^5.1.4",
     "@mdi/font": "5.9.55",
+    "bootstrap": "^5.3.3",
+    "bootstrap-vue": "^2.23.1",
     "chart.js": "^4.4.6",
     "core-js": "^3.8.3",
     "d3": "^7.9.0",

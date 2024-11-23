@@ -333,6 +333,7 @@ export default {
     },
     userDataForm: {
       handler(newUserData) {
+        console.log(newUserData);
         this.userData = { ...newUserData };
         this.updateChartData();
       },

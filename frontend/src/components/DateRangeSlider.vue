@@ -1,14 +1,19 @@
 <template>
   <div class="range-slider">
+    <h2>Select Year Range</h2>
+    <!-- Min Year Input -->
     <input
         type="number"
-        class="input-box left-input"
+        class="input-box"
         v-model.number="tempMinValue"
         @blur="updateSliderValue('min')"
         @keyup.enter="handleEnter('min', $event)"
-    :min="minYear"
-    :max="maxValue"
+        :min="minYear"
+        :max="maxValue"
+        placeholder="Start Year"
     />
+
+    <!-- Slider -->
     <div class="slider-container">
       <div class="slider-track"></div>
       <div
@@ -26,14 +31,17 @@
           @mousedown="startDrag('max')"
       ></div>
     </div>
+
+    <!-- Max Year Input -->
     <input
         type="number"
-        class="input-box right-input"
+        class="input-box"
         v-model.number="tempMaxValue"
         @blur="updateSliderValue('max')"
         @keyup.enter="handleEnter('max', $event)"
-    :min="minValue"
-    :max="maxYear"
+        :min="minValue"
+        :max="maxYear"
+        placeholder="End Year"
     />
   </div>
 </template>
@@ -95,8 +103,7 @@ export default {
       const slider = this.$el.querySelector(".slider-container").getBoundingClientRect();
       const percentage = ((event.clientX - slider.left) / slider.width) * 100;
       const yearValue =
-          Math.round((percentage / 100) * (this.maxYear - this.minYear)) +
-          this.minYear;
+          Math.round((percentage / 100) * (this.maxYear - this.minYear)) + this.minYear;
 
       if (this.draggingThumb === "min") {
         this.minValue = Math.min(
@@ -151,37 +158,51 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .range-slider {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 15px;
+  gap: 15px;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%; /* Dynamically resize with the sidebar */
+  box-sizing: border-box;
+}
+
+h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin: 0;
+  color: #333;
 }
 
 .slider-container {
-  flex: 1;
   position: relative;
-  height: 50px;
+  height: 10px;
+  width: 100%; /* Full width for responsiveness */
+  background-color: #ddd;
+  border-radius: 5px;
+  overflow: hidden;
 }
 
 .slider-track {
   position: absolute;
-  top: 50%;
+  top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 100%;
   background-color: #ddd;
-  transform: translateY(-50%);
 }
 
 .slider-range {
   position: absolute;
-  top: 50%;
-  height: 4px;
+  top: 0;
+  height: 100%;
   background-color: #2196f3;
-  transform: translateY(-50%);
+  border-radius: 5px;
 }
 
 .slider-thumb {
@@ -196,19 +217,22 @@ export default {
 }
 
 .input-box {
-  width: 80px;
+  width: 100%; /* Full width for sidebar compatibility */
   padding: 8px;
-  font-size: 16px;
+  font-size: 14px;
   text-align: center;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
-.left-input {
-  margin-right: 10px;
-}
+@media (max-width: 600px) {
+  .range-slider {
+    padding: 10px; /* Reduce padding for smaller screens */
+  }
 
-.right-input {
-  margin-left: 10px;
+  h2 {
+    font-size: 1rem; /* Adjust heading size for smaller screens */
+  }
 }
 </style>
