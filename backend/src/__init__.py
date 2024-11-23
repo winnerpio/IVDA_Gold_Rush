@@ -106,16 +106,15 @@ class AthleteList(Resource):
 
 
 class SportEventList(Resource):
-    # Return a list of dictionaries {id: iso2, value: total_medals}
-    # Possible arguments: None, sport, event
+    # Sample Use: http://127.0.0.1:5000/SportEventList?year_lower=2000&year_upper=2010
     def get(self, args=None):
         # Retrieve the arguments from the request
         args = request.args.to_dict()
         print(args)
         if args == {}:
             args = {'year_lower': 1920, "year_upper": 1928}
-        year_lower = args["year_lower"]
-        year_upper = args["year_upper"]
+        year_lower = int(args["year_lower"])
+        year_upper = int(args["year_upper"])
 
         
         # Query the MongoDB collection with the constructed query
@@ -185,7 +184,7 @@ class MedalCount(Resource):
         
         # If the user specified category is "All" we retrieve all companies
         if args == {}:
-            args = {'year_lower': 1920, "year_upper": 1928, "sport": "Athletics", "event": None}
+            args = {'year_lower': 1920, "year_upper": 1928, "sport": None, "event": None}
         year_lower = args["year_lower"]
         year_upper = args["year_upper"]
         sport = args["sport"]
@@ -203,6 +202,8 @@ class MedalCount(Resource):
 
 api.add_resource(WorldMapList, '/worldmap')
 api.add_resource(AthleteList, '/athletes')
+
+# Task 1
 api.add_resource(SportEventList, '/SportEventList')
 api.add_resource(MedalCount, '/MedalCount')
 
@@ -214,6 +215,8 @@ api.add_resource(MedalCount, '/MedalCount')
 # 2nd API input: sport, event and year range,
 
 # Output: dictionary: country key, values: total medals, nested dictionary with key year, and values dictionaries of bronze silver and gold keys with values count 
+
+
 
 # Task 2
 # 1st APi call: same as before
