@@ -68,8 +68,24 @@ class AthleteList(Resource):
         # retrieve the arguments and convert to a dict
         args = request.args.to_dict()
         print(args)
+
+        # Example Usage: http://127.0.0.1:5000/athletes?id=65649
+        # http://127.0.0.1:5000/athletes?sex=Male&medal=Gold
+        
         # If the user specified category is "All" we retrieve all companies
-        cursor = athletes.find()
+        if args == None:
+            args = {"id":65649}
+
+        query = {}
+        query = {key: value for key, value in request.args.items()}
+        if 'id' in args:
+            query['id'] = int(args['id'])
+        if 'edition_id' in args:
+            query['edition_id'] = int(args['edition_id'])
+        if 'age' in args:
+            query['age'] = int(args['age'])
+
+        cursor = athletes.find(query)
         # Filter
         return [Athlete(**doc).to_json() for doc in cursor]
 

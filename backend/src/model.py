@@ -9,9 +9,9 @@ class Athlete(BaseModel):
     age: int
     sex: str
     height: int
-    weight: int
-    bmi: int
-    h2w: int
+    weight: float
+    bmi: float
+    h2w: float
     edition_id: int
     sport: str
     event: str
