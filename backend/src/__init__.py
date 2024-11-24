@@ -12,6 +12,9 @@ from collections import defaultdict
 import random
 from sklearn.cluster import KMeans
 
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+
 cc2country = {
     "US": "United States",
     "GR": "Greece",
@@ -758,7 +761,7 @@ def get_clustering(
         for athlete in random_athletes
     ]
     clustering_data = np.array(clustering_data)
-    
+    clustering_data = scaler.fit_transform(clustering_data)
     
     kmeans = KMeans(n_clusters=3, random_state=42)
     cluster_labels = kmeans.fit_predict(clustering_data)
