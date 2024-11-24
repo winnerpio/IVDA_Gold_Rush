@@ -99,7 +99,7 @@
               <v-card outlined>
                 <v-card-title style="text-align: center; justify-content: center;">Discover Similar Athletes Using Clustering</v-card-title>
                 <v-card-text>
-                  <AthleteClustering />
+                  <AthleteClustering :yearRange="yearRange" :userDataForm="userData"/>
                 </v-card-text>
               </v-card>
             </v-container>

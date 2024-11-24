@@ -50,9 +50,9 @@
           @blur="submitAttributes"
           @keydown.enter="handleEnter"
       />
-      <!-- Number of Medals -->
+      <!-- BMI -->
       <v-text-field
-          v-model="userAttributes.medals"
+          v-model="userAttributes.bmi"
           label="BMI"
           type="number"
           dense
@@ -62,9 +62,9 @@
           @blur="submitAttributes"
           @keydown.enter="handleEnter"
       />
-      <!-- Performance -->
+      <!-- H2W -->
       <v-text-field
-          v-model="userAttributes.performance"
+          v-model="userAttributes.h2w"
           label="H2W"
           type="number"
           dense
@@ -98,9 +98,6 @@ export default {
     submitAttributes() {
       const updatedAttributes = {
         ...this.userAttributes,
-        medals: this.userAttributes.medals
-            ? Number(this.userAttributes.medals)
-            : null,
       };
 
       this.$emit("update-attributes", updatedAttributes);
