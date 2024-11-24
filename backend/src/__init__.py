@@ -8,6 +8,149 @@ from .model import Athlete, Country, Sports_event_year
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
+cc2country = {
+    "US": "United States",
+    "GR": "Greece",
+    "DE": "Germany",
+    "FR": "France",
+    "GB": "Great Britain",
+    "HU": "Hungary",
+    "AT": "Austria",
+    "AU": "Australia",
+    "DK": "Denmark",
+    "CH": "Switzerland",
+    "BE": "Belgium",
+    "IT": "Italy",
+    "NL": "Netherlands",
+    "CU": "Cuba",
+    "ES": "Spain",
+    "NO": "Norway",
+    "IN": "India",
+    "CZ": "Bohemia",
+    "SE": "Sweden",
+    "CA": "Canada",
+    "RU": "Russian Federation",
+    "FI": "Finland",
+    "ZA": "South Africa",
+    "EE": "Estonia",
+    "BR": "Brazil",
+    "JP": "Japan",
+    "LU": "Luxembourg",
+    "NZ": "New Zealand",
+    "AR": "Argentina",
+    "UY": "Uruguay",
+    "IE": "Ireland",
+    "PL": "Poland",
+    "HT": "Haiti",
+    "MC": "Monaco",
+    "PT": "Portugal",
+    "RO": "Romania",
+    "EG": "Egypt",
+    "CL": "Chile",
+    "PH": "Philippines",
+    "MX": "Mexico",
+    "LV": "Latvia",
+    "TR": "Turkiye",
+    "JM": "Jamaica",
+    "PE": "Peru",
+    "LK": "Sri Lanka",
+    "TT": "Trinidad and Tobago",
+    "PA": "Panama",
+    "KR": "Republic of Korea",
+    "IR": "Islamic Republic of Iran",
+    "PR": "Puerto Rico",
+    "LB": "Lebanon",
+    "BG": "Bulgaria",
+    "VE": "Venezuela",
+    "IS": "Iceland",
+    "PK": "Pakistan",
+    "BS": "The Bahamas",
+    "ET": "Ethiopia",
+    "TW": "Chinese Taipei",
+    "GH": "Ghana",
+    "MA": "Morocco",
+    "SG": "Singapore",
+    "IQ": "Iraq",
+    "TN": "Tunisia",
+    "KE": "Kenya",
+    "NG": "Nigeria",
+    "MN": "Mongolia",
+    "UG": "Uganda",
+    "CM": "Cameroon",
+    "KP": "Democratic People's Republic of Korea",
+    "CO": "Colombia",
+    "NE": "Niger",
+    "BM": "Bermuda",
+    "TH": "Thailand",
+    "ZW": "Zimbabwe",
+    "TZ": "United Republic of Tanzania",
+    "GY": "Guyana",
+    "CN": "People's Republic of China",
+    "CI": "C\u00f4te d'Ivoire",
+    "SY": "Syrian Arab Republic",
+    "DZ": "Algeria",
+    "DO": "Dominican Republic",
+    "ZM": "Zambia",
+    "SR": "Suriname",
+    "CR": "Costa Rica",
+    "ID": "Indonesia",
+    "SN": "Senegal",
+    "VI": "United States Virgin Islands",
+    "DJ": "Djibouti",
+    "LT": "Lithuania",
+    "NA": "Namibia",
+    "HR": "Croatia",
+    "IL": "Israel",
+    "SI": "Slovenia",
+    "MY": "Malaysia",
+    "QA": "Qatar",
+    "UA": "Ukraine",
+    "KZ": "Kazakhstan",
+    "BY": "Belarus",
+    "SK": "Slovakia",
+    "AM": "Armenia",
+    "BI": "Burundi",
+    "EC": "Ecuador",
+    "HK": "Hong Kong, China",
+    "MD": "Republic of Moldova",
+    "UZ": "Uzbekistan",
+    "AZ": "Azerbaijan",
+    "TO": "Tonga",
+    "GE": "Georgia",
+    "MZ": "Mozambique",
+    "SA": "Kingdom of Saudi Arabia",
+    "VN": "Vietnam",
+    "BB": "Barbados",
+    "KW": "Kuwait",
+    "KG": "Kyrgyzstan",
+    "MK": "North Macedonia",
+    "AE": "United Arab Emirates",
+    "PY": "Paraguay",
+    "ER": "Eritrea",
+    "RS": "Serbia",
+    "TJ": "Tajikistan",
+    "WS": "Samoa",
+    "SD": "Sudan",
+    "AF": "Afghanistan",
+    "MU": "Mauritius",
+    "TG": "Togo",
+    "BH": "Bahrain",
+    "GD": "Grenada",
+    "BW": "Botswana",
+    "CY": "Cyprus",
+    "GA": "Gabon",
+    "GT": "Guatemala",
+    "ME": "Montenegro",
+    "FJ": "Fiji",
+    "JO": "Jordan",
+    "XK": "Kosovo",
+    "SM": "San Marino",
+    "TM": "Turkmenistan",
+    "BF": "Burkina Faso",
+    "LI": "Liechtenstein"
+}
+
+country2cc = {value: key for key, value in cc2country.items()}
 
 # Configure Flask & Flask-PyMongo:
 app = Flask(__name__)
@@ -27,17 +170,6 @@ countries: Collection = db["countries"]
 sports_event_years: Collection = db["sports_event_year"]
 api = Api(app)
 
-'''
-Endpoints:
-    - WorldMapList: List of pairs per country iso2 - total (medals)
-    - AthleteList
-    - SportList
-    - EventList
-    - RadarData
-    - DistCorrData
-    - AthleteCluster
-    - OutlierData
-'''
 
 class WorldMapList(Resource):
     # Return a list of dictionaries {id: iso2, value: total_medals}
@@ -112,7 +244,7 @@ class SportEventList(Resource):
         args = request.args.to_dict()
         print(args)
         if args == {}:
-            args = {'year_lower': 1920, "year_upper": 1928}
+            args = {'year_lower': 1800, "year_upper": 2024}
         year_lower = int(args["year_lower"])
         year_upper = int(args["year_upper"])
 
@@ -187,7 +319,7 @@ class MedalCount(Resource):
         event = None
         # If the user specified category is "All" we retrieve all companies
         if args == {}:
-            args = {'year_lower': 1920, "year_upper": 1928, "sport": None, "event": None}
+            args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None}
         if "sport" in args:
             sport = args["sport"]
         if "event" in args:
@@ -204,6 +336,139 @@ class MedalCount(Resource):
         # Filter
         return result
 
+def get_cc2cn_dict(countries_data, year_lower, year_upper, sport=None, event=None):
+    result = {}
+    
+    for item in countries_data:
+        year = item["year"]
+        country_noc = item["country_iso2"]
+        item_sport = item["sport"][0]  
+        item_event = item["sport"][1]
+
+        if not (year_lower <= year <= year_upper):
+            continue
+        if sport and sport != item_sport:
+            continue
+        if event and event != item_event:
+            continue
+    
+        if country_noc not in result:
+            result[country_noc] = item["country"]
+    return result
+
+class CountryCode2CountryName(Resource):
+    def get(self, args=None):
+        # Sample usage http://127.0.0.1:5000/CC2CN?year_lower=2000&year_upper=2010
+        args = request.args.to_dict()
+        print(args)
+        sport = None
+        event = None
+        # If the user specified category is "All" we retrieve all companies
+        if args == {}:
+            args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None}
+        if "sport" in args:
+            sport = args["sport"]
+        if "event" in args:
+            event = args["event"]
+        year_lower = int(args["year_lower"])
+        year_upper = int(args["year_upper"])
+        
+
+        cursor = countries.find()
+        countries_data = [Country(**doc).to_json() for doc in cursor]
+
+
+        result = get_cc2cn_dict(countries_data, year_lower, year_upper, sport, event)
+        # Filter
+        return result
+
+def get_athletes(athlete_data, year_lower, year_upper, sport=None, event=None, country_code=None):
+    result_dict = {}
+    for item in athlete_data:
+        year = int(item["year"])
+        country_filter = None
+        if country_code:
+            country_filter = cc2country[country_code]
+        
+        item_sport = item["sport"]
+        item_event = item["event"]
+        item_country = item["country"].strip()
+        item_medal = item["medal"]
+        medal_value = 0
+        if item_medal != "No":
+            medal_value = 1
+
+        if not (year_lower <= year <= year_upper):
+            continue
+        if sport and sport != item_sport:
+            continue
+        if event and event != item_event:
+            continue
+        if country_filter and country_filter != item_country:
+            continue
+            # here we add a list of athlete objects
+        key = item["name"] + " " + str(year)
+
+        if key not in result_dict:
+            data = {
+                'name': item["name"],
+                'country': item_country,
+                'sports': [item_sport],
+                'events': [item_event],
+                'weight': item["weight"],
+                'height': item["height"],
+                'bmi': item["bmi"],
+                'h2w': item["h2w"],
+                'sex': item["sex"],
+                'age': item["age"],
+                'medal_count': medal_value
+            }
+        else:
+            if item_sport not in result_dict[key]['sports']:
+                result_dict[key]['sports'].append(item_sport)
+            if item_event not in result_dict[key]['events']:
+                result_dict[key]['events'].append(item_event)
+            result_dict[key]['medal_count'] += medal_value
+            
+        result_dict[key] = data
+
+
+    return result_dict
+
+class CountryAthletes(Resource):
+    def get(self, args=None):
+        # Sample usage http://127.0.0.1:5000/CountryAthletes?year_lower=2000&year_upper=2010&sport=Athletics&country_code=US
+        args = request.args.to_dict()
+        print(args)
+        sport = None
+        event = None
+        country_code = None
+        country_filter = None
+        query = {}
+        # If the user specified category is "All" we retrieve all companies
+        if args == {}:
+            args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None, "country_code": None}
+        if "sport" in args:
+            sport = args["sport"]
+        if "event" in args:
+            event = args["event"]
+        if "country_code" in args:
+            country_code = args["country_code"]
+            country_filter = cc2country[country_code]
+        if country_filter:
+            query["country"] = country_filter
+        if sport:
+            query["sport"] = sport
+        year_lower = int(args["year_lower"])
+        year_upper = int(args["year_upper"])
+        
+
+        cursor = athletes.find(query)
+        athlete_data = [Athlete(**doc).to_json() for doc in cursor]
+
+        result = get_athletes(athlete_data, year_lower, year_upper, sport, event, country_code)
+        # Filter
+        return result
 
 api.add_resource(WorldMapList, '/worldmap')
 api.add_resource(AthleteList, '/athletes')
@@ -213,6 +478,10 @@ api.add_resource(SportEventList, '/SportEventList')
 api.add_resource(MedalCount, '/MedalCount')
 
 
+# Task 2
+api.add_resource(CountryCode2CountryName, '/CC2CN')
+api.add_resource(CountryAthletes, '/CountryAthletes')
+
 # Task 1:
 # API call that retrieves all data for a given year range
 # output of call: dict of key: sport, value: list of all events
@@ -220,8 +489,6 @@ api.add_resource(MedalCount, '/MedalCount')
 # 2nd API input: sport, event and year range,
 
 # Output: dictionary: country key, values: total medals, nested dictionary with key year, and values dictionaries of bronze silver and gold keys with values count 
-
-
 
 # Task 2
 # 1st APi call: same as before
