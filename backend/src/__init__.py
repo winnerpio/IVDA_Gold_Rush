@@ -8,6 +8,7 @@ from .model import Athlete, Country, Sports_event_year
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import numpy as np
+from collections import defaultdict
 
 cc2country = {
     "US": "United States",
@@ -680,7 +681,118 @@ api.add_resource(Outliers, '/GetOutliers')
 
 # Task 5
 # api call with year, sport and event
+#api.add_resource(SportEventList, '/SportEventList')
 
 
+
+def get_distribution_data(athlete_data, year_lower, year_upper, sport=None, event=None, country_code=None, dist_variable=None, bins=None):
+    # Initialize a result dictionary to store distributions
+    result_dict = defaultdict(lambda: {"athlete_count": 0, "medal_count": 0})
+    values = []
+    if bins == None:
+        bins = 10
+
+    # Filter athlete data based on the given criteria
+    for item in athlete_data:
+        year = int(item["year"])
+        country_filter = None
+        if country_code:
+            country_filter = cc2country[country_code]
+        
+        item_sport = item["sport"]
+        item_event = item["event"]
+        item_country = item["country"].strip()
+        item_medal = item["medal"]
+        if item_medal != "No":
+            medal_value = 1 
+        else:
+            medal_value = 0
+
+        if not (year_lower <= year <= year_upper):
+            continue
+        if sport and sport != item_sport:
+            continue
+        if event and event != item_event:
+            continue
+        if country_filter and country_filter != item_country:
+            continue
+
+        # Collectinjg the dist_variable and medals values
+        if dist_variable in item:
+            values.append((item[dist_variable], medal_value))
+
+    variable_values, medal_values = zip(*values)
+
+    min_val = int(np.floor(min(variable_values)))
+    max_val = int(np.ceil(max(variable_values)))
+
+    bin_edges = np.linspace(min_val, max_val, bins + 1)
+    bin_edges = np.round(bin_edges).astype(int)  # Round to whole numbers
+    bin_edges = np.unique(bin_edges)
+
+    bin_indices = np.digitize(variable_values, bins=bin_edges, right=False)
+
+    for idx, (value, medal) in enumerate(zip(variable_values, medal_values)):
+        bin_index = bin_indices[idx]
+        if bin_index == 0:
+            bin_range = f"< {bin_edges[0]}"
+        elif bin_index >= len(bin_edges):
+            bin_range = f">= {bin_edges[-1]}"
+        else:
+            bin_range = f"{bin_edges[bin_index - 1]} - {bin_edges[bin_index]}"
+        
+        result_dict[bin_range]["athlete_count"] += 1
+        result_dict[bin_range]["medal_count"] += medal
+
+    return dict(result_dict)
+
+
+
+
+
+class Distribution(Resource):
+    def get(self, args=None):
+        # Sample usage http://127.0.0.1:5000/GetDistribution?year_lower=2000&year_upper=2010&dist_variable=age&country_code=US
+        args = request.args.to_dict()
+        print(args)
+        sport = None
+        event = None
+        country_code = None
+        country_filter = None
+        dist_variable = None
+        bins = None
+        query = {}
+        # If the user specified category is "All" we retrieve all companies
+        if args == {}:
+            args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None, "country_code": None}
+        if "sport" in args:
+            sport = args["sport"]
+        if "event" in args:
+            event = args["event"]
+        if "bins" in args:
+            bins = int(args["bins"])
+        if "country_code" in args:
+            country_code = args["country_code"]
+            country_filter = cc2country[country_code]
+        if country_filter:
+            query["country"] = country_filter
+        if sport:
+            query["sport"] = sport
+        if event:
+            query["event"] = event
+        
+        dist_variable = args["dist_variable"]
+        year_lower = int(args["year_lower"])
+        year_upper = int(args["year_upper"])
+        
+
+        cursor = athletes.find(query)
+        athlete_data = [Athlete(**doc).to_json() for doc in cursor]
+
+        result = get_distribution_data(athlete_data, year_lower, year_upper, sport, event, country_code, dist_variable, bins)
+        # Filter
+        return result
+
+api.add_resource(Distribution, '/GetDistribution')
 # api call with input attribute
 # ouptut: distribution and number of medals
