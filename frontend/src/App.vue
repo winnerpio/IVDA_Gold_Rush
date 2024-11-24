@@ -73,6 +73,7 @@
                       :athleteData="selectedAthleteData"
                       :sport="selectedSport"
                       :event="selectedEvent"
+                      :yearRange="yearRange"
                       :selectedCountry="selectedCountry"
                   />
                 </v-card-text>
@@ -157,8 +158,8 @@ export default {
         height: 0,
         weight: 0,
         age: 0,
-        medals: 0,
-        performance: "",
+        bmi: 0,
+        h2w: 0,
       },
       selectedCountry: {
         name: "",

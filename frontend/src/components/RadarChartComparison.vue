@@ -12,16 +12,20 @@
                       label="Select Country"
                       :items="countries"
                       v-model="selectedCountry"
+                      item-value="props"
+                      item-text="title"
+                      @change="fetchAthletes"
                   ></v-select>
                 </v-col>
                 <v-col cols="6">
                   <v-select
                       label="Select Athlete"
-                      :items="filteredAthletes"
+                      :items="athletes"
                       v-model="selectedAthlete"
                       item-value="props"
                       item-text="title"
                       :disabled="!selectedCountry || !sport || !event"
+                      dense
                   ></v-select>
                 </v-col>
               </v-row>
@@ -45,6 +49,7 @@ import * as am5radar from "@amcharts/amcharts5/radar";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import {toRaw} from "vue";
+import axios from "axios";
 
 export default {
   data() {
@@ -56,16 +61,17 @@ export default {
       },
       selectedCountry: null,
       selectedAthlete: null,
-      countries: ["USA", "China", "Germany", "Canada"], // Example countries
-      filteredAthletes: [], // Athletes filtered by selectedCountry, sport, and event
+      countries: [],
+      athletes: [],
       userData: {
         sex: '',
         height: 175,
         weight: 70,
         age: 25,
-        medals: 10,
-        performance: 179,
+        bmi: 10,
+        h2w: 2,
       },
+      isFetchingCountries: false,
     };
   },
   mounted() {
@@ -92,7 +98,6 @@ export default {
           })
       );
 
-      // Add cursor for better interactivity
       let cursor = chart.set("cursor", am5radar.RadarCursor.new(this.root, {
         behavior: "zoomX"
       }));
@@ -128,7 +133,7 @@ export default {
               fillOpacity: 0.4,
               tooltip: am5.Tooltip.new(this.root, {
                 labelText: `{name}: {valueY}`,
-                fontSize: "2px", // Smaller font size for tooltips
+                fontSize: "2px",
               })
             })
         );
@@ -137,7 +142,6 @@ export default {
           strokeWidth: 2
         });
 
-        // Add bullets for better visibility of points
         series.bullets.push(() => {
           return am5.Bullet.new(this.root, {
             sprite: am5.Circle.new(this.root, {
@@ -165,171 +169,144 @@ export default {
       this.updateChartData();
       chart.appear(1000, 100);
     },
-    async fetchAthletesByCriteria(country, sport, event) {
-      // Simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Mock data
-      const allAthletes = [
-        {
-          name: "Athlete A",
-          id: 1,
-          country: "USA",
-          sport: "Swimming",
-          event: "200m Freestyle",
-          height: 180,
-          weight: 75,
-          age: 26,
-          medals: 8,
-          performance: 200,
-        },
-        {
-          name: "Athlete B",
-          id: 2,
-          country: "China",
-          sport: "Running",
-          event: "100m",
-          height: 170,
-          weight: 65,
-          age: 24,
-          medals: 12,
-          performance: 220,
-        },
-        {
-          name: "Athlete C",
-          id: 3,
-          country: "USA",
-          sport: "Swimming",
-          event: "200m Freestyle",
-          height: 185,
-          weight: 80,
-          age: 28,
-          medals: 6,
-          performance: 190,
-        },
-        {
-          name: "Athlete D",
-          id: 4,
-          country: "Germany",
-          sport: "Cycling",
-          event: "Road Race",
-          height: 178,
-          weight: 72,
-          age: 27,
-          medals: 9,
-          performance: 210,
-        },
-        {
-          name: "Athlete E",
-          id: 5,
-          country: "Canada",
-          sport: "Running",
-          event: "200m",
-          height: 172,
-          weight: 68,
-          age: 23,
-          medals: 15,
-          performance: 230,
-        },
-      ];
-
-      const filteredAthletes = allAthletes.filter(
-          (athlete) =>
-              athlete.country === country &&
-              athlete.sport === sport &&
-              athlete.event === event
-      );
-
-      return filteredAthletes.map((athlete) => ({
-        title: athlete.name,
-        props: {
-          id: athlete.id,
-          country: athlete.country,
-          sport: athlete.sport,
-          event: athlete.event,
-          height: athlete.height,
-          weight: athlete.weight,
-          age: athlete.age,
-          medals: athlete.medals,
-          performance: athlete.performance,
-        },
-      }));
-    },
-    async updateAthletesList() {
-      if (!this.selectedCountry || !this.sport || !this.event) {
-        console.warn("Cannot fetch athletes. Ensure country, sport, and event are selected.");
+    async fetchAthletes() {
+      if (!this.selectedCountry || !this.sport || !this.event || this.yearRange.length !== 2) {
+        console.warn("Missing required filters: country, sport, event, or year range.");
         return;
       }
 
-      this.filteredAthletes = await this.fetchAthletesByCriteria(this.selectedCountry, this.sport, this.event);
-    },
-    async updateChartData() {
-      if (!this.selectedAthlete) {
-        console.warn("No athlete selected. Chart data will not update.");
-        return;
+      const params = {
+        year_lower: this.yearRange[0],
+        year_upper: this.yearRange[1],
+        sport: this.sport,
+        event: this.event,
+        country_code: this.selectedCountry.code,
+      };
+
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/CountryAthletes", { params });
+        const data = response.data;
+
+        this.athletes = Object.entries(data).map(([key, athlete]) => {
+          const yearMatch = key.match(/\d{4}$/);
+          const year = yearMatch ? parseInt(yearMatch[0], 10) : null;
+
+          return {
+            title: athlete.name,
+            props: {
+              weight: athlete.weight,
+              height: athlete.height,
+              bmi: athlete.bmi,
+              h2w: athlete.h2w,
+              age: athlete.age,
+              subtitle: year,
+            },
+          };
+        });
+      } catch (error) {
+        console.error("Error fetching athletes:", error.message);
       }
+    },
+    updateChartData() {
+      if (!this.selectedAthlete) return;
 
       const athleteData = toRaw(this.selectedAthlete);
+      const labels = ["Height", "Weight", "Age", "BMI", "H2W"];
+      const userDataset = [
+        this.userData.height,
+        this.userData.weight,
+        this.userData.age,
+        this.userData.bmi,
+        this.userData.h2w,
+      ];
+      const athleteDataset = [
+        athleteData.height,
+        athleteData.weight,
+        athleteData.age,
+        athleteData.bmi,
+        athleteData.h2w,
+      ];
 
-      if (athleteData) {
-        // Update chart with new data
-        const labels = ["Height", "Weight", "Age", "Number of Medals", "Performance"];
-        const userDataset = [
-          this.userData.height,
-          this.userData.weight,
-          this.userData.age,
-          this.userData.medals,
-          this.userData.performance,
-        ];
-        const athleteDataset = [
-          athleteData.height,
-          athleteData.weight,
-          athleteData.age,
-          athleteData.medals,
-          athleteData.performance,
-        ];
+      const data = labels.map((label, i) => ({
+        category: label,
+        user: userDataset[i],
+        athlete: athleteDataset[i],
+      }));
 
-        const data = labels.map((label, i) => ({
-          category: label,
-          user: userDataset[i],
-          athlete: athleteDataset[i],
-        }));
-
-        if (this.chart) {
-          const xAxis = this.chart.xAxes.getIndex(0);
-          if (xAxis) {
-            xAxis.data.setAll(data);
-          }
-
-          this.series.user.data.setAll(data);
-          this.series.athlete.data.setAll(data);
+      if (this.chart) {
+        const xAxis = this.chart.xAxes.getIndex(0);
+        if (xAxis) {
+          xAxis.data.setAll(data);
         }
-      } else {
-        console.warn("No data available for the selected athlete.");
+
+        this.series.user.data.setAll(data);
+        this.series.athlete.data.setAll(data);
       }
-    }
+    },
+    async fetchCountriesIfReady() {
+      if (this.sport && this.event && this.yearRange.length === 2) {
+        await this.fetchCountries();
+      } else {
+        console.warn("Missing required filters: sport, event, or year range.");
+      }
+    },
+    async fetchCountries() {
+      if (this.isFetchingCountries) return;
+
+      this.isFetchingCountries = true;
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/CC2CN", {
+          params: {
+            year_lower: this.yearRange[0],
+            year_upper: this.yearRange[1],
+            sport: this.sport,
+            event: this.event,
+          },
+        });
+        const data = response.data;
+        this.countries = Object.entries(data).map(([code, name]) => ({
+          title: name,
+          props: {"code": code} ,
+        }));
+      } catch (error) {
+        console.error("Failed to fetch countries:", error.message);
+      } finally {
+        this.isFetchingCountries = false;
+      }
+    },
   },
   props: {
     sport: {
-      type: String,
+      type: [String, null],
       required: true,
     },
     event: {
-      type: String,
+      type: [String, null],
       required: true,
     },
     userDataForm: {
-      type: Object,
+      type: [Object, null],
       required: true,
+    },
+    yearRange: {
+      type: Array,
+      default: () => [1896, 2022],
     },
   },
   watch: {
-    selectedCountry: "updateAthletesList",
-    sport: "updateAthletesList",
-    event: "updateAthletesList",
-    selectedAthlete() {
-      this.updateAthletesList();
-      this.updateChartData();
+    sport: "fetchCountriesIfReady",
+    event: "fetchCountriesIfReady",
+    yearRange: {
+      handler: "fetchCountriesIfReady",
+      immediate: true,
+    },
+    selectedAthlete: "updateChartData",
+    selectedCountry(newCountry) {
+      if (newCountry) {
+        this.selectedAthlete = null;
+        this.selectedCountry = newCountry;
+        this.fetchAthletes();
+      }
     },
     userDataForm: {
       handler(newUserData) {
