@@ -72,7 +72,7 @@ export default {
       isDragging: false,
       draggingThumb: null,
       debounceTimer: null,
-      debounceDelay: 300, // Time (ms) before emitting the update event
+      debounceDelay: 300,
     };
   },
   computed: {
@@ -89,7 +89,7 @@ export default {
   methods: {
     handleEnter(type, event) {
       this.updateSliderValue(type);
-      event.target.blur(); // Removes focus from the textbox
+      event.target.blur();
     },
     startDrag(thumb) {
       this.isDragging = true;

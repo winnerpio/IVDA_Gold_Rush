@@ -196,7 +196,7 @@ export default {
         });
 
         console.log(response);
-        this.sharedData = response.data; // Assign API response to sharedData
+        this.sharedData = response.data;
       } catch (error) {
         console.error("Error fetching shared data:", error.message);
       } finally {

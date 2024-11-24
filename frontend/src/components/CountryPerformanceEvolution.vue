@@ -117,33 +117,6 @@ export default {
         }),
       }));
 
-      // let legend = chart.children.push(
-      //   am5.Legend.new(this.root, {
-      //     centerX: am5.p50,
-      //     x: am5.p50,
-      //     layout: this.root.verticalLayout,
-      //     marginTop: 10,
-      //     paddingTop: 5,
-      //     paddingBottom: 5,
-      //     background: am5.RoundedRectangle.new(this.root, {
-      //       fill: am5.color(0xf3f3f3),
-      //       cornerRadius: 10,
-      //       shadowColor: am5.color(0x000000),
-      //       shadowBlur: 5,
-      //     }),
-      //     interactive: true,
-      //   })
-      // );
-
-      // legend.data.setAll(chart.series.values);
-
-      // chart.series.values.forEach((series) => {
-      //   series.get("legendDataItem").get("label").set("tooltipText", `Click to toggle visibility for ${series.get("name")}`);
-      //   series.get("legendDataItem").get("marker").events.on("click", function () {
-      //     series.set("visible", !series.get("visible"));
-      //   });
-      // });
-
       chart.set("cursor", am5xy.XYCursor.new(this.root, {
         behavior: "zoomX",
       }));

@@ -120,8 +120,8 @@ export default {
   props: {
   yearRange: {
     type: Array,
-    required: true, // Ensure the prop is provided
-    default: () => [1896, 2022], // Fallback in case it's missing
+    required: true,
+    default: () => [1896, 2022],
   },
 },
 };

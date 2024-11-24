@@ -50,7 +50,6 @@ export default {
         .map((event) => event.event)
     );
 
-    // Fetch sports and events using the SportEventList API
     const fetchSportsAndEvents = async (yearRange) => {
       try {
         const response = await axios.get('http://127.0.0.1:5000/SportEventList', {
@@ -61,7 +60,6 @@ export default {
         });
         const data = response.data;
 
-        // Extract sports and events from the API response
         sports.value = Object.keys(data);
         events.value = Object.entries(data).flatMap(([sport, eventList]) =>
           eventList.map((event) => ({ sport, event }))
@@ -71,22 +69,19 @@ export default {
       }
     };
 
-    // Emit sport and event whenever the event changes
     watch(selectedEvent, (newEvent) => {
       if (newEvent) {
         emit('update-sport-event', { sport: selectedSport.value, event: newEvent });
       }
     });
 
-    // Reset the event selection when the sport changes
     watch(selectedSport, () => {
-      selectedEvent.value = null; // Reset the event
+      selectedEvent.value = null;
     });
 
-    // Watch for yearRange changes and refetch data
     watch(() => props.yearRange, (newYearRange) => {
       fetchSportsAndEvents(newYearRange);
-    }, {immediate: true}); // Immediate ensures the watcher triggers on initial mount as well
+    }, {immediate: true});
 
     return {
       selectedSport,

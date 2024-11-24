@@ -148,7 +148,7 @@ export default {
             year_upper: range[1],
           },
         });
-        this.sports = Object.keys(response.data); // Assuming API returns { sports: [] }
+        this.sports = Object.keys(response.data);
       } catch (error) {
         console.error("Error fetching sports data:", error.message);
       }
@@ -211,20 +211,18 @@ export default {
     validateInputs() {
       const missingFields = [];
 
-      // Check user data fields
       Object.entries(this.userData).forEach(([key, value]) => {
         if (value === null || value === undefined) {
           missingFields.push(`User Data: ${key}`);
         }
       });
 
-      // Check attributes
       if (!this.xAttribute) missingFields.push("X-Axis Attribute");
       if (!this.yAttribute) missingFields.push("Y-Axis Attribute");
       if (!this.selectedSport1) missingFields.push("Selected Sport 1");
       if (!this.selectedSport2) missingFields.push("Selected Sport 2");
       if (!this.selectedSport3) missingFields.push("Selected Sport 3");
-      // Log missing fields if any
+
       if (missingFields.length > 0) {
         console.warn("Missing inputs:", missingFields.join(", "));
         return false;
@@ -262,7 +260,6 @@ export default {
           })
       );
 
-      // Add labels for x and y axes
       this.xAxisLabel = am5.Label.new(this.root, {
         text: this.xAttribute || "X-Axis",
         x: am5.p50,
@@ -292,11 +289,10 @@ export default {
 
       series.bullets.push((root, series, dataItem) => {
         const cluster = dataItem.dataContext.cluster;
-        const name = dataItem.dataContext.name; // Get the athlete's name
+        const name = dataItem.dataContext.name;
         const color = am5.color(this.colors[cluster]);
 
         if (name === "User") {
-          // Use a square shape for "User"
           return am5.Bullet.new(root, {
             sprite: am5.Rectangle.new(root, {
               width: 10,
@@ -306,7 +302,6 @@ export default {
             }),
           });
         } else {
-          // Default to a circle for other athletes
           return am5.Bullet.new(root, {
             sprite: am5.Circle.new(root, {
               fill: color,

@@ -113,7 +113,6 @@ export default {
             value: value.all?.total || 0,
           }));
 
-          // console.log("Updating map with new data:", transformedData);
           this.polygonSeries.data.setAll(transformedData);
         } else {
           console.warn("Invalid data received:", newData);
