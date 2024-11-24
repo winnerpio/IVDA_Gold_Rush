@@ -26,13 +26,19 @@
 </template>
 
 <script>
-
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, watch } from "vue";
+import axios from 'axios';
 
 export default {
   name: "OlympicDataTopMenu",
-
-  setup(_, { emit }) {
+  props: {
+    yearRange: {
+      type: Array,
+      required: true,
+      default: () => [1896, 2022],
+    },
+  },
+  setup(props, { emit }) {
     const selectedSport = ref(null);
     const selectedEvent = ref(null);
     const sports = ref([]);
@@ -44,38 +50,43 @@ export default {
         .map((event) => event.event)
     );
 
+    // Fetch sports and events using the SportEventList API
+    const fetchSportsAndEvents = async (yearRange) => {
+      try {
+        const response = await axios.get('http://127.0.0.1:5000/SportEventList', {
+          params: {
+            year_lower: yearRange[0],
+            year_upper: yearRange[1],
+          },
+        });
+        const data = response.data;
 
-    const fetchSports = async () => {
-      sports.value = ["Athletics", "Swimming", "Gymnastics"];
+        // Extract sports and events from the API response
+        sports.value = Object.keys(data);
+        events.value = Object.entries(data).flatMap(([sport, eventList]) =>
+          eventList.map((event) => ({ sport, event }))
+        );
+      } catch (error) {
+        console.error('Error fetching sports and events:', error);
+      }
     };
 
-    const fetchEvents = async () => {
-      events.value = [
-        { subtitle: "Athletics", title: "100m" },
-        { subtitle: "Athletics", title: "200m" },
-        { subtitle: "Swimming", title: "100m Freestyle" },
-        { subtitle: "Swimming", title: "200m Freestyle" },
-        { subtitle: "Gymnastics", title: "Floor Exercise" },
-      ];
-
-    };
-
+    // Emit sport and event whenever the event changes
     watch(selectedEvent, (newEvent) => {
       if (newEvent) {
-
-        emit("update-sport-event", { sport: selectedSport.value, event: newEvent });
-
+        emit('update-sport-event', { sport: selectedSport.value, event: newEvent });
       }
     });
 
+    // Reset the event selection when the sport changes
     watch(selectedSport, () => {
-      selectedEvent.value = null;
+      selectedEvent.value = null; // Reset the event
     });
 
-    // Fetch data on mount
-    onMounted(() => {
-      fetchSportsAndEvents([1896, 2022]);
-    });
+    // Watch for yearRange changes and refetch data
+    watch(() => props.yearRange, (newYearRange) => {
+      fetchSportsAndEvents(newYearRange);
+    }, {immediate: true}); // Immediate ensures the watcher triggers on initial mount as well
 
     return {
       selectedSport,
@@ -83,13 +94,6 @@ export default {
       sports,
       filteredEvents,
     };
-  },
-  props: {
-    yearRange: {
-      type: Array,
-      required: true,
-      default: () => [1896, 2022],
-    },
   },
 };
 </script>

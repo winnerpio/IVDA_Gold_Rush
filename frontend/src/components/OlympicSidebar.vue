@@ -19,7 +19,7 @@
       <!-- Olympic Data Menu -->
       <div class="menu-item" @click="expandMenu">
         <template v-if="isExpanded">
-          <OlympicDataTopMenu @update-sport-event="handleSportEventUpdate" />
+          <OlympicDataTopMenu :yearRange="yearRange" @update-sport-event="handleSportEventUpdate"/>
         </template>
         <template v-else>
           <span class="material-icons" title="Select Sport and Event">sports</span>
@@ -42,7 +42,7 @@
           <DateRangeSlider
               :minYear="1896"
               :maxYear="2022"
-              :initialRange="[1920, 2005]"
+              :initialRange="[1896, 2022]"
               @update:range="updateYearRange"
           />
         </template>
@@ -70,7 +70,9 @@ export default {
   },
   emits: ["update:modelValue", "update-sport-event", "update-user-data"],
   setup(_, { emit }) {
-    const isExpanded = ref(localStorage.getItem("is_expanded") === "true");
+    const isExpanded = ref(localStorage.getItem("is_expanded") === "true" || false );
+    const yearRange = ref([1896, 2022]);
+
 
     const toggleMenu = () => {
       isExpanded.value = !isExpanded.value;
@@ -93,6 +95,7 @@ export default {
     };
 
     const updateYearRange = (newRange) => {
+      yearRange.value = newRange;
       emit("update:range", newRange);
     };
 
@@ -114,6 +117,13 @@ export default {
       logoURL,
     };
   },
+  props: {
+  yearRange: {
+    type: Array,
+    required: true, // Ensure the prop is provided
+    default: () => [1896, 2022], // Fallback in case it's missing
+  },
+},
 };
 </script>
 

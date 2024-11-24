@@ -31,9 +31,7 @@
                     <v-col cols="7" class="align-height-col">
                       <MedalSuccessMap
                           @country-selected="handleCountrySelected"
-                          :yearRange="yearRange"
-                          :sport="selectedSport"
-                          :event="selectedEvent"
+                          :data="sharedData"
                       />
                     </v-col>
                     <v-col cols="5" class="d-flex align-center justify-center">
@@ -42,16 +40,18 @@
                           <CountryPerformanceEvolution
                               :event="selectedEvent"
                               :sport="selectedSport"
-                              :country="selectedCountry.name"
-                              :dateRange="[2000, 2020]"
+                              :country="selectedCountry"
+                              :dateRange="yearRange"
+                              :data="sharedData"
                           />
                         </v-col>
                         <v-col cols="12" class="pa-0 mt-n5">
                           <MedalRadialHistogram
-                              :country="selectedCountry.name"
+                              :country="selectedCountry"
                               :sport="selectedSport"
                               :event="selectedEvent"
-                              :dateRange="[2000, 2020]"
+                              :dateRange="[1896, 2022]"
+                              :data="sharedData"
                           />
                         </v-col>
                       </v-row>
@@ -128,6 +128,7 @@
 
 
 <script>
+import axios from 'axios';
 import MedalSuccessMap from "./components/MedalSuccessMap.vue";
 import AthleteAttributeDistribution from "./components/AthleteAttributeDistribution.vue";
 import OutlierIdentification from "./components/OutlierIdentification.vue";
@@ -163,16 +164,44 @@ export default {
         name: "",
         code: "",
       },
-      yearRange: [1920, 2005],
+      yearRange: [1896, 2022],
       selectedAthleteData: null,
       selectedSport: null,
       selectedEvent: null,
       is_expanded: false,
       minYear: 1896,
       maxYear: 2022,
+      sharedData: null,
+      isLoading: false,
     };
   },
   methods: {
+    async fetchSharedData() {
+      if (!this.yearRange && !this.selectedSport && !this.selectedEvent) {
+        console.warn("Missing filters for data fetching.");
+        return;
+      }
+
+      this.isLoading = true;
+
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/MedalCount", {
+          params: {
+            year_lower: this.yearRange[0],
+            year_upper: this.yearRange[1],
+            sport: this.selectedSport,
+            event: this.selectedEvent,
+          },
+        });
+
+        console.log(response);
+        this.sharedData = response.data; // Assign API response to sharedData
+      } catch (error) {
+        console.error("Error fetching shared data:", error.message);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     updateAttributes(attributes) {
       this.userData = { ...this.userData, ...attributes };
     },
@@ -209,8 +238,25 @@ export default {
       this.is_expanded = !this.is_expanded;
     },
   },
+  watch: {
+    selectedEvent() {
+      if (this.selectedSport && this.selectedEvent && this.yearRange && this.yearRange.length === 2) {
+        this.fetchSharedData();
+      } else {
+        console.warn("Missing required filters: sport, event, or year range.");
+      }
+    },
+    yearRange(newRange) {
+    if (this.selectedSport && this.selectedEvent && newRange.length === 2) {
+      this.fetchSharedData();
+    } else {
+      console.warn("Missing required filters: sport, event, or year range.");
+    }
+  },
+  },
 };
 </script>
+
 
 <style scoped>
 .main-content {
