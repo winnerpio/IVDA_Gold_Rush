@@ -9,6 +9,8 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import numpy as np
 from collections import defaultdict
+import random
+from sklearn.cluster import KMeans
 
 cc2country = {
     "US": "United States",
@@ -510,6 +512,12 @@ api.add_resource(CountryAthletes, '/CountryAthletes')
 # Task 3
 # 1st APi call: same as before
 #api.add_resource(SportEventList, '/SportEventList')
+medal_map = {
+    0: "None",
+    1: "Bronze",
+    2: "Silver",
+    3: "Gold"
+}
 
 
 def detect_outliers(data, x_key, y_key, top_n=500):
@@ -546,7 +554,7 @@ def detect_outliers(data, x_key, y_key, top_n=500):
         entry[1]["outlier"] = False
         if reasons:
             entry[1]["outlier"] = True
-        
+        entry[1]["highest_medal"] = medal_map[entry[1]["highest_medal"]]
         output.append((entry[0], entry[1], reasons))
     
     return output
@@ -678,6 +686,167 @@ api.add_resource(Outliers, '/GetOutliers')
 # Task 4
 # 1st api call: given user atrributes sex, height, w, age, bmi, h2w, .... (2 of them) cluster based on all of the attributes
 # return 100 most similar athletes: cluster they belong to and stuff 
+
+
+
+# Clustering Task
+
+def get_clustering(
+    athlete_data, year_lower, year_upper, sport, event, country_code,
+    x_axis_variable, y_axis_variable, sport1, sport2, sport3,
+    user_age, user_bmi, user_height, user_weight, user_h2w, athlete_number
+):
+    # Step 1: Filter the athletes based on the year, sport, event, and country code
+    filtered_athletes = []
+    for item in athlete_data:
+        year = int(item["year"])
+        country_filter = None
+        if country_code:
+            country_filter = cc2country[country_code]
+        
+        item_sport = item["sport"]
+        item_event = item["event"]
+        item_country = item["country"].strip()
+
+        if not (year_lower <= year <= year_upper):
+            continue
+        if sport and sport != item_sport:
+            continue
+        if event and event != item_event:
+            continue
+        if country_filter and country_filter != item_country:
+            continue
+
+        filtered_athletes.append(item)
+    
+    # Step 2: Randomly sample athletes from sport1, sport2, and sport3
+    random_athletes = []
+    for sport_filter in [sport1, sport2, sport3]:
+        sport_athletes = [athlete for athlete in filtered_athletes if athlete["sport"] == sport_filter]
+        sampled_athletes = random.sample(sport_athletes, min(athlete_number, len(sport_athletes)))
+        random_athletes.extend(sampled_athletes)
+
+    # Add the user's data as an athlete
+    user_data_mapping = {
+    "age": user_age,
+    "weight": user_weight,
+    "height": user_height,
+    "bmi": user_bmi,
+    "h2w": user_h2w
+    }
+
+    # Use the dictionary to get the value
+    user_x = user_data_mapping.get(x_axis_variable)
+    user_y = user_data_mapping.get(y_axis_variable)
+
+
+    user_data = {
+        "name": "User",
+        "age": user_age,
+        "bmi": user_bmi,
+        "height": user_height,
+        "weight": user_weight,
+        "h2w": user_h2w,
+        "x_axis_variable_value": user_x,
+        "y_axis_variable_value": user_y,
+        "sport": "User"
+    }
+    random_athletes.append(user_data)
+
+    # Step 3: Prepare data for clustering
+    clustering_data = [
+        (athlete[x_axis_variable], athlete[y_axis_variable])
+        for athlete in random_athletes
+    ]
+    clustering_data = np.array(clustering_data)
+    
+    
+    # Step 4: Perform K-Means Clustering
+    kmeans = KMeans(n_clusters=3, random_state=42)
+    cluster_labels = kmeans.fit_predict(clustering_data)
+    
+    
+    # Step 5: Assign cluster numbers back to the athlete objects
+    for athlete, cluster in zip(random_athletes, cluster_labels):
+        athlete["cluster"] = int(cluster)
+        athlete["x_axis_value"] = athlete[x_axis_variable]
+        athlete["y_axis_value"] = athlete[y_axis_variable]
+    return random_athletes
+
+# Sample usage http://127.0.0.1:5000/GetClustering?year_lower=2000&year_upper=2010&country_code=US&x_axis_variable=age&y_axis_variable=weight&sport1=Swimming&sport2=Football&sport3=Athletics
+class Clustering(Resource):
+    def get(self, args=None):
+        args = request.args.to_dict()
+        print(args)
+
+        # General Data
+        sport = None
+        event = None
+        country_code = None
+        country_filter = None
+        x_axis_variable = None
+        y_axis_variable = None
+        sport1 = None
+        sport2 = None
+        sport3 = None
+        
+        # User Data
+        user_age = 25
+        user_bmi = 20
+        user_height = 190
+        user_weight = 90
+        user_h2w = 2
+        
+        
+        query = {}
+        if args == {}:
+            args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None, "country_code": None}
+        if "sport" in args:
+            sport = args["sport"]
+        if "event" in args:
+            event = args["event"]
+        if "country_code" in args:
+            country_code = args["country_code"]
+            country_filter = cc2country[country_code]
+
+        #updating user data using args
+        if "user_age" in args:
+            user_age = args["user_age"]
+        if "user_bmi" in args:
+            user_bmi = args["user_bmi"]
+        if "user_height" in args:
+            user_height = args["user_height"]
+        if "user_weight" in args:
+            user_weight = args["user_weight"]
+        if "user_h2w" in args:
+            user_h2w = args["user_h2w"]
+
+
+        if country_filter:
+            query["country"] = country_filter
+        if sport:
+            query["sport"] = sport
+        if event:
+            query["event"] = event
+        x_axis_variable = args["x_axis_variable"]
+        y_axis_variable = args["y_axis_variable"]
+        sport1 = args["sport1"]
+        sport2 = args["sport2"]
+        sport3 = args["sport3"]
+        
+        year_lower = int(args["year_lower"])
+        year_upper = int(args["year_upper"])
+        
+
+        cursor = athletes.find(query)
+        athlete_data = [Athlete(**doc).to_json() for doc in cursor]
+
+        result = get_clustering(athlete_data, year_lower, year_upper, sport, event, country_code, x_axis_variable, y_axis_variable, 
+                                sport1, sport2, sport3, user_age, user_bmi, user_height, user_weight, user_h2w, 100)
+        # Filter
+        return result
+
+api.add_resource(Clustering, '/GetClustering')
 
 dist_variable2units = {
     "age": "years",
