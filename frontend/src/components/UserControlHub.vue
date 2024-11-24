@@ -53,7 +53,7 @@
       <!-- Number of Medals -->
       <v-text-field
           v-model="userAttributes.medals"
-          label="Medals"
+          label="BMI"
           type="number"
           dense
           outlined
@@ -65,8 +65,8 @@
       <!-- Performance -->
       <v-text-field
           v-model="userAttributes.performance"
-          label="Performance"
-          type="text"
+          label="H2W"
+          type="number"
           dense
           outlined
           hide-details
@@ -88,8 +88,8 @@ export default {
         height: null,
         weight: null,
         age: null,
-        medals: null,
-        performance: "",
+        bmi: null,
+        h2w: null,
       },
       sex: ["Male", "Female", "All"],
     };
