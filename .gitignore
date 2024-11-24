@@ -4,3 +4,5 @@ backend/backend_venv/
 backend/src/__pycache__/
 backend/src/__pycache__/__init__.cpython-312.pyc
 backend/src/__pycache__/model.cpython-312.pyc
+*.pyc
+__pycache__/
