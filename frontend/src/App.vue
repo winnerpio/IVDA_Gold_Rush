@@ -112,8 +112,13 @@
                 <v-card-title style="text-align: center; justify-content: center;">Explore Attribute Distributions Among Athletes</v-card-title>
                 <v-card-text>
                   <AthleteAttributeDistribution
-                      :userDataForm="userData"
-                      :dateRange="yearRange"
+                    :userDataForm="userData"
+                    :dateRange="yearRange"
+                    :distributionData="distributionData"
+                    :detailedDistributionData="detailedDistributionData"
+                    @update:distVariable="handleDistVariableSelection"
+                    @fetch-detailed-distribution="fetchDetailedDistribution"
+                    @panel-opened="handlePanelOpened"
                   />
                 </v-card-text>
               </v-card>
@@ -174,6 +179,10 @@ export default {
       maxYear: 2022,
       sharedData: null,
       isLoading: false,
+      distributionData: null,
+      selectedDistVariable: 'age',
+      detailedDistributionData: null,
+      isPanelOpen: false,
     };
   },
   methods: {
@@ -238,11 +247,80 @@ export default {
     toggleSidebar() {
       this.is_expanded = !this.is_expanded;
     },
+
+    async fetchDistribution() {
+      if (!this.yearRange || !this.selectedDistVariable) {
+        console.warn("Missing filters for distribution data fetching.");
+        return;
+      }
+
+      this.isLoading = true;
+
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/GetDistribution", {
+          params: {
+            year_lower: this.yearRange[0],
+            year_upper: this.yearRange[1],
+            ...(this.selectedSport && { sport: this.selectedSport }),
+            ...(this.selectedEvent && { event: this.selectedEvent }),
+            dist_variable: this.selectedDistVariable,
+            bins: 10,
+          },
+        });
+
+        console.log("Distribution data response:", response);
+        this.distributionData = response.data;
+      } catch (error) {
+        console.error("Error fetching distribution data:", error.message);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    handleDistVariableSelection(distVariable) {
+      this.selectedDistVariable = distVariable;
+      this.fetchDistribution();
+
+      if (this.isPanelOpen) {
+        this.fetchDetailedDistribution();
+      }
+    },
+    async fetchDetailedDistribution() {
+      if (!this.yearRange || !this.selectedDistVariable) {
+        console.warn("Missing filters for detailed distribution data fetching.");
+        return;
+      }
+
+      this.isLoading = true;
+
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/GetDistribution2", {
+          params: {
+            year_lower: this.yearRange[0],
+            year_upper: this.yearRange[1],
+            ...(this.selectedSport && { sport: this.selectedSport }),
+            ...(this.selectedEvent && { event: this.selectedEvent }),
+            dist_variable: this.selectedDistVariable,
+            bins: 10,
+          },
+        });
+
+        console.log("Detailed distribution data response:", response);
+        this.detailedDistributionData = response.data;
+      } catch (error) {
+        console.error("Error fetching detailed distribution data:", error.message);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    handlePanelOpened(isOpen) {
+      this.isPanelOpen = isOpen;
+    },
   },
   watch: {
     selectedEvent() {
       if (this.selectedSport && this.selectedEvent && this.yearRange && this.yearRange.length === 2) {
         this.fetchSharedData();
+        this.fetchDistribution();
       } else {
         console.warn("Missing required filters: sport, event, or year range.");
       }
@@ -250,6 +328,7 @@ export default {
     yearRange(newRange) {
     if (this.selectedSport && this.selectedEvent && newRange.length === 2) {
       this.fetchSharedData();
+      this.fetchDistribution();
     } else {
       console.warn("Missing required filters: sport, event, or year range.");
     }
