@@ -7,6 +7,7 @@ from pymongo.collection import Collection
 from .model import Athlete, Country, Sports_event_year
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import numpy as np
 
 cc2country = {
     "US": "United States",
@@ -423,6 +424,7 @@ def get_athletes(athlete_data, year_lower, year_upper, sport=None, event=None, c
                 'age': item["age"],
                 'medal_count': medal_value
             }
+            result_dict[key] = data
         else:
             if item_sport not in result_dict[key]['sports']:
                 result_dict[key]['sports'].append(item_sport)
@@ -430,7 +432,7 @@ def get_athletes(athlete_data, year_lower, year_upper, sport=None, event=None, c
                 result_dict[key]['events'].append(item_event)
             result_dict[key]['medal_count'] += medal_value
             
-        result_dict[key] = data
+        
 
 
     return result_dict
@@ -474,13 +476,6 @@ api.add_resource(WorldMapList, '/worldmap')
 api.add_resource(AthleteList, '/athletes')
 
 # Task 1
-api.add_resource(SportEventList, '/SportEventList')
-api.add_resource(MedalCount, '/MedalCount')
-
-
-# Task 2
-api.add_resource(CountryCode2CountryName, '/CC2CN')
-api.add_resource(CountryAthletes, '/CountryAthletes')
 
 # Task 1:
 # API call that retrieves all data for a given year range
@@ -489,6 +484,13 @@ api.add_resource(CountryAthletes, '/CountryAthletes')
 # 2nd API input: sport, event and year range,
 
 # Output: dictionary: country key, values: total medals, nested dictionary with key year, and values dictionaries of bronze silver and gold keys with values count 
+
+
+api.add_resource(SportEventList, '/SportEventList')
+api.add_resource(MedalCount, '/MedalCount')
+
+
+# Task 2
 
 # Task 2
 # 1st APi call: same as before
@@ -499,9 +501,176 @@ api.add_resource(CountryAthletes, '/CountryAthletes')
 # 3rd API call: input sport, event, year range and country using country code,
 # output: list of athelte, year objects, aggregate by year, counting medals
 
+# api.add_resource(SportEventList, '/SportEventList')
+api.add_resource(CountryCode2CountryName, '/CC2CN')
+api.add_resource(CountryAthletes, '/CountryAthletes')
+
+
 # Task 3
 # 1st APi call: same as before
+#api.add_resource(SportEventList, '/SportEventList')
 
+
+def detect_outliers(data, x_key, y_key, top_n=500):
+
+    top_entries = sorted(data.items(), key=lambda x: x[1]["medal_count"], reverse=True)[:top_n]
+    
+
+    x_values = [entry[1][x_key] for entry in top_entries]
+    y_values = [entry[1][y_key] for entry in top_entries]
+    
+
+    def calculate_iqr(values):
+        Q1 = np.percentile(values, 25)
+        Q3 = np.percentile(values, 75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.3 * IQR
+        upper_bound = Q3 + 1.3 * IQR
+        return lower_bound, upper_bound
+
+    x_lower, x_upper = calculate_iqr(x_values)
+    y_lower, y_upper = calculate_iqr(y_values)
+    
+    output = []
+    for entry, x, y in zip(top_entries, x_values, y_values):
+        reasons = []
+        if x < x_lower:
+            reasons.append(f"{x_key} ({x}) is below the lower bound ({x_lower})")
+        if x > x_upper:
+            reasons.append(f"{x_key} ({x}) is above the upper bound ({x_upper})")
+        if y < y_lower:
+            reasons.append(f"{y_key} ({y}) is below the lower bound ({y_lower})")
+        if y > y_upper:
+            reasons.append(f"{y_key} ({y}) is above the upper bound ({y_upper})")
+        entry[1]["outlier"] = False
+        if reasons:
+            entry[1]["outlier"] = True
+        
+        output.append((entry[0], entry[1], reasons))
+    
+    return output
+
+def convert_to_dict(data):
+    result_dict = {}
+    for entry in data:
+        key = entry[0]
+        value = {
+            "data": entry[1],
+            "reasons": entry[2]
+        }
+        result_dict[key] = value
+    return result_dict
+
+
+def get_outliers(athlete_data, year_lower, year_upper, sport=None, event=None, country_code=None, x_axis_variable=None, y_axis_variable=None):
+    result_dict = {}
+    
+    for item in athlete_data:
+        year = int(item["year"])
+        current_medal_nr = 0
+        country_filter = None
+        if country_code:
+            country_filter = cc2country[country_code]
+        
+        item_sport = item["sport"]
+        item_event = item["event"]
+        item_country = item["country"].strip()
+        item_medal = item["medal"]
+        medal_value = 0
+
+        if item_medal != "No":
+            medal_value = 1
+            if item_medal == "Bronze":
+                current_medal_nr = 1
+            if item_medal == "Silver":
+                current_medal_nr = 2
+            if item_medal == "Gold":
+                current_medal_nr = 3
+
+
+
+        if not (year_lower <= year <= year_upper):
+            continue
+        if sport and sport != item_sport:
+            continue
+        if event and event != item_event:
+            continue
+        if country_filter and country_filter != item_country:
+            continue
+            # here we add a list of athlete objects
+        key = item["name"] + " " + str(year)
+
+        if key not in result_dict:
+            data = {
+                'name': item["name"],
+                'country': item_country,
+                'sports': [item_sport],
+                'events': [item_event],
+                'weight': item["weight"],
+                'height': item["height"],
+                'bmi': item["bmi"],
+                'h2w': item["h2w"],
+                'sex': item["sex"],
+                'age': item["age"],
+                'medal_count': medal_value,
+                'highest_medal': current_medal_nr,
+                'x_axis_variable_value': item[x_axis_variable],
+                'y_axis_variable_value': item[y_axis_variable]
+            }
+            result_dict[key] = data
+        else:
+            if item_sport not in result_dict[key]['sports']:
+                result_dict[key]['sports'].append(item_sport)
+            if item_event not in result_dict[key]['events']:
+                result_dict[key]['events'].append(item_event)
+            result_dict[key]['medal_count'] += medal_value
+            if current_medal_nr > result_dict[key]['highest_medal']:
+                result_dict[key]['highest_medal'] = current_medal_nr
+
+    outliers = detect_outliers(result_dict, x_axis_variable, y_axis_variable, 1000)
+    
+    return convert_to_dict(outliers)
+
+class Outliers(Resource):
+    def get(self, args=None):
+        # Sample usage http://127.0.0.1:5000/GetOutliers?year_lower=1900&year_upper=2010&x_axis_variable=age&y_axis_variable=weight&country_code=US
+        args = request.args.to_dict()
+        print(args)
+        sport = None
+        event = None
+        country_code = None
+        country_filter = None
+        x_axis_variable = None
+        y_axis_variable = None
+        query = {}
+        # If the user specified category is "All" we retrieve all companies
+        if args == {}:
+            args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None, "country_code": None}
+        if "sport" in args:
+            sport = args["sport"]
+        if "event" in args:
+            event = args["event"]
+        if "country_code" in args:
+            country_code = args["country_code"]
+            country_filter = cc2country[country_code]
+        if country_filter:
+            query["country"] = country_filter
+        if sport:
+            query["sport"] = sport
+        x_axis_variable = args["x_axis_variable"]
+        y_axis_variable = args["y_axis_variable"]
+        year_lower = int(args["year_lower"])
+        year_upper = int(args["year_upper"])
+        
+
+        cursor = athletes.find(query)
+        athlete_data = [Athlete(**doc).to_json() for doc in cursor]
+
+        result = get_outliers(athlete_data, year_lower, year_upper, sport, event, country_code, x_axis_variable, y_axis_variable)
+        # Filter
+        return result
+
+api.add_resource(Outliers, '/GetOutliers')
 # 2nd call: input same as before, and two additional attributes
 # return top 100 athletes by number of medals, athlete objects (name, year, y/n outlier, values for x and y attributes, highest medal they achieved for that event)
 
