@@ -696,7 +696,7 @@ def get_clustering(
     x_axis_variable, y_axis_variable, sport1, sport2, sport3,
     user_age, user_bmi, user_height, user_weight, user_h2w, athlete_number
 ):
-    # Step 1: Filter the athletes based on the year, sport, event, and country code
+    # Filtering
     filtered_athletes = []
     for item in athlete_data:
         year = int(item["year"])
@@ -719,7 +719,7 @@ def get_clustering(
 
         filtered_athletes.append(item)
     
-    # Step 2: Randomly sample athletes from sport1, sport2, and sport3
+    # Randomly sampling athletes from sport1, sport2, and sport3
     random_athletes = []
     for sport_filter in [sport1, sport2, sport3]:
         sport_athletes = [athlete for athlete in filtered_athletes if athlete["sport"] == sport_filter]
@@ -753,7 +753,6 @@ def get_clustering(
     }
     random_athletes.append(user_data)
 
-    # Step 3: Prepare data for clustering
     clustering_data = [
         (athlete[x_axis_variable], athlete[y_axis_variable])
         for athlete in random_athletes
@@ -761,12 +760,11 @@ def get_clustering(
     clustering_data = np.array(clustering_data)
     
     
-    # Step 4: Perform K-Means Clustering
     kmeans = KMeans(n_clusters=3, random_state=42)
     cluster_labels = kmeans.fit_predict(clustering_data)
     
     
-    # Step 5: Assign cluster numbers back to the athlete objects
+    # Making return object
     for athlete, cluster in zip(random_athletes, cluster_labels):
         athlete["cluster"] = int(cluster)
         athlete["x_axis_value"] = athlete[x_axis_variable]
