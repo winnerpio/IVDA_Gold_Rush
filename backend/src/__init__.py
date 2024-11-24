@@ -679,18 +679,26 @@ api.add_resource(Outliers, '/GetOutliers')
 # 1st api call: given user atrributes sex, height, w, age, bmi, h2w, .... (2 of them) cluster based on all of the attributes
 # return 100 most similar athletes: cluster they belong to and stuff 
 
+dist_variable2units = {
+    "age": "years",
+    "weight": "kg",
+    "height": "cm",
+    "bmi": "",
+    "h2w": ""
+}
+
 # Task 5
 # api call with year, sport and event
 #api.add_resource(SportEventList, '/SportEventList')
 
-
-
 def get_distribution_data(athlete_data, year_lower, year_upper, sport=None, event=None, country_code=None, dist_variable=None, bins=None):
-    # Initialize a result dictionary to store distributions
     result_dict = defaultdict(lambda: {"athlete_count": 0, "medal_count": 0})
     values = []
-    if bins == None:
-        bins = 10
+    if bins is None:
+        bins = 20
+
+    # Determine the unit for the dist_variable
+    unit = dist_variable2units.get(dist_variable, "")  # Default to empty string if no unit is defined
 
     # Filter athlete data based on the given criteria
     for item in athlete_data:
@@ -703,10 +711,7 @@ def get_distribution_data(athlete_data, year_lower, year_upper, sport=None, even
         item_event = item["event"]
         item_country = item["country"].strip()
         item_medal = item["medal"]
-        if item_medal != "No":
-            medal_value = 1 
-        else:
-            medal_value = 0
+        medal_value = 1 if item_medal != "No" else 0
 
         if not (year_lower <= year <= year_upper):
             continue
@@ -717,17 +722,18 @@ def get_distribution_data(athlete_data, year_lower, year_upper, sport=None, even
         if country_filter and country_filter != item_country:
             continue
 
-        # Collectinjg the dist_variable and medals values
+        # Collect the dist_variable value
         if dist_variable in item:
             values.append((item[dist_variable], medal_value))
 
     variable_values, medal_values = zip(*values)
 
+    # Determine bin edges
     min_val = int(np.floor(min(variable_values)))
     max_val = int(np.ceil(max(variable_values)))
 
     bin_edges = np.linspace(min_val, max_val, bins + 1)
-    bin_edges = np.round(bin_edges).astype(int)  # Round to whole numbers
+    bin_edges = np.round(bin_edges).astype(int)
     bin_edges = np.unique(bin_edges)
 
     bin_indices = np.digitize(variable_values, bins=bin_edges, right=False)
@@ -735,24 +741,36 @@ def get_distribution_data(athlete_data, year_lower, year_upper, sport=None, even
     for idx, (value, medal) in enumerate(zip(variable_values, medal_values)):
         bin_index = bin_indices[idx]
         if bin_index == 0:
-            bin_range = f"< {bin_edges[0]}"
+            bin_range = f"< {bin_edges[0]} {unit}".strip()
+            bin_key = bin_edges[0] - 1
         elif bin_index >= len(bin_edges):
-            bin_range = f">= {bin_edges[-1]}"
+            bin_range = f">= {bin_edges[-1]} {unit}".strip()
+            bin_key = bin_edges[-1] + 1
         else:
-            bin_range = f"{bin_edges[bin_index - 1]} - {bin_edges[bin_index]}"
+            bin_range = f"{bin_edges[bin_index - 1]} - {bin_edges[bin_index]} {unit}".strip()
+            bin_key = bin_edges[bin_index - 1]
         
-        result_dict[bin_range]["athlete_count"] += 1
-        result_dict[bin_range]["medal_count"] += medal
+        result_dict[bin_key] = result_dict[bin_key]
+        result_dict[bin_key]["bin_range"] = bin_range
+        result_dict[bin_key]["athlete_count"] += 1
+        result_dict[bin_key]["medal_count"] += medal
 
-    return dict(result_dict)
-
-
+    # s
+    sorted_result = dict(sorted(result_dict.items(), key=lambda x: x[0]))
+    final_result = {
+        v["bin_range"]: {
+            "athlete_count": v["athlete_count"],
+            "medal_count": v["medal_count"]
+        }
+        for k, v in sorted_result.items()
+    }
+    return final_result
 
 
 
 class Distribution(Resource):
     def get(self, args=None):
-        # Sample usage http://127.0.0.1:5000/GetDistribution?year_lower=2000&year_upper=2010&dist_variable=age&country_code=US
+        # Sample usage http://127.0.0.1:5000/GetDistribution?year_lower=2000&year_upper=2010&dist_variable=age&country_code=US&bins=13
         args = request.args.to_dict()
         print(args)
         sport = None
