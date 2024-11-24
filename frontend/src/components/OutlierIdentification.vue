@@ -12,6 +12,7 @@
                   v-model="xAxis"
                   :items="attributes"
                   label="X-Axis Attribute"
+                  @change="updateChart"
               ></v-select>
             </v-col>
             <v-col cols="12" sm="4">
@@ -19,13 +20,17 @@
                   v-model="yAxis"
                   :items="attributes"
                   label="Y-Axis Attribute"
+                  @change="updateChart"
               ></v-select>
             </v-col>
             <v-col cols="12" sm="4">
               <v-select
-                  v-model="selectedSport"
-                  :items="sports"
-                  label="Select Sport"
+                  label="Select Country"
+                  :items="countries"
+                  v-model="selectedCountry"
+                  item-value="props"
+                  item-text="title"
+                  @change="updateChart"
               ></v-select>
             </v-col>
           </v-row>
@@ -42,6 +47,7 @@
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+import axios from "axios";
 
 export default {
   name: "OutlierIdentification",
@@ -50,21 +56,18 @@ export default {
       xAxis: null,
       yAxis: null,
       selectedSport: null,
-      attributes: ["Attribute 1", "Attribute 2", "Attribute 3"],
-      sports: ["Swimming", "Running", "Cycling"],
+      selectedEvent: null,
+      attributes: ["Age", "Height", "Weight", "BMI", "H2W"],
+      sports: [],
       chart: null,
       series: null,
       apiData: [],
+      countries: [],
+      selectedCountry: null,
     };
-  },
-  watch: {
-    selectedSport(newSport) {
-      this.updateChartData(newSport);
-    },
   },
   mounted() {
     this.initChart();
-    this.updateChartData(this.selectedSport);
   },
   beforeUnmount() {
     if (this.root) {
@@ -89,58 +92,62 @@ export default {
       const xAxis = chart.xAxes.push(
           am5xy.ValueAxis.new(this.root, {
             renderer: am5xy.AxisRendererX.new(this.root, {}),
-            // tooltip: am5.Tooltip.new(this.root, {}),
+            tooltip: am5.Tooltip.new(this.root, {})
+
           })
       );
+
+      xAxis.children.moveValue(am5.Label.new(this.root, {
+        text: "X-Axis",
+        x: am5.p50,
+        centerX: am5.p50
+      }), xAxis.children.length - 1);
 
       const yAxis = chart.yAxes.push(
           am5xy.ValueAxis.new(this.root, {
             renderer: am5xy.AxisRendererY.new(this.root, {}),
-            // tooltip: am5.Tooltip.new(this.root, {}),
+            tooltip: am5.Tooltip.new(this.root, {})
+
           })
       );
+
+      yAxis.children.moveValue(am5.Label.new(this.root, {
+        rotation: -90,
+        text: "Y-Axis",
+        y: am5.p50,
+        centerX: am5.p50
+      }), 0);
+
 
       this.series = chart.series.push(
           am5xy.LineSeries.new(this.root, {
             xAxis: xAxis,
             yAxis: yAxis,
-            valueXField: "ax",
-            valueYField: "ay",
-            tooltip: am5.Tooltip.new(this.root, {
-              labelText: "x: {valueX}, y: {valueY}, medal: {medal}",
-            }),
+            valueXField: "x",
+            valueYField: "y",
+            seriesTooltipTarget: "bullet",
           })
       );
 
-      this.series.bullets.push((root, series, dataItem) => {
-        const medal = dataItem.dataContext.medal;
-        let fill;
+      this.series.strokes.template.set("visible", false);
 
-        if (medal === "gold") fill = am5.color(0xffd700); // Gold
-        else if (medal === "silver") fill = am5.color(0xc0c0c0); // Silver
-        else if (medal === "bronze") fill = am5.color(0xcd7f32); // Bronze
-        else fill = am5.color(0x76bedf); // No medal (black)
+      this.series.bullets.push((root, series, dataItem) => {
+        const { outlier } = dataItem.dataContext;
+        const fill = dataItem.dataContext.fill;
 
         return am5.Bullet.new(root, {
           sprite: am5.Circle.new(root, {
+            radius: outlier ? 10 : 6,
             fill: fill,
-            radius: 6,
-            tooltipText: "x: {valueX}, y: {valueY}, medal: {medal}", // Tooltip text
+            tooltipText: `[bold]Athlete[/]: {name}\n[bold]Year[/]: {year}\n[bold]X[/]: {x}\n[bold]Y[/]: {y}\n[bold]Medal[/]: {medal}\n[bold]Outlier[/]: ${outlier ? "Yes" : "No"}`,
+            tooltipY: 0,
           }),
         });
       });
 
       this.series.strokes.template.setAll({
-        visible: false, // Hides the line connecting the points
+        visible: false,
       });
-
-      // chart.set(
-      //     "cursor",
-      //     am5xy.XYCursor.new(this.root, {
-      //       xAxis: xAxis,
-      //       yAxis: yAxis,
-      //     })
-      // );
 
       chart.set(
           "scrollbarX",
@@ -150,87 +157,177 @@ export default {
           "scrollbarY",
           am5.Scrollbar.new(this.root, { orientation: "vertical" })
       );
-    },
-    async fetchData(sport) {
-      const allData = [
-        { "ax": 8.22, "ay": 2.10, "medal": "silver", "sport": "Swimming" },
-        { "ax": 8.75, "ay": 1.29, "medal": "none", "sport": "Swimming" },
-        { "ax": 5.43, "ay": 0.98, "medal": "gold", "sport": "Swimming" },
-        { "ax": 6.99, "ay": 2.15, "medal": "gold", "sport": "Swimming" },
-        { "ax": 3.73, "ay": 2.80, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 8.21, "ay": 3.44, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 7.26, "ay": 4.07, "medal": "gold", "sport": "Swimming" },
-        { "ax": 3.03, "ay": 3.97, "medal": "none", "sport": "Swimming" },
-        { "ax": 3.98, "ay": 3.06, "medal": "none", "sport": "Swimming" },
-        { "ax": 5.54, "ay": 0.77, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 8.32, "ay": 2.17, "medal": "none", "sport": "Swimming" },
-        { "ax": 8.43, "ay": 1.06, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 8.30, "ay": 4.05, "medal": "silver", "sport": "Swimming" },
-        { "ax": 1.89, "ay": 0.60, "medal": "none", "sport": "Swimming" },
-        { "ax": 2.33, "ay": 2.88, "medal": "gold", "sport": "Swimming" },
-        { "ax": 4.36, "ay": 1.35, "medal": "silver", "sport": "Swimming" },
-        { "ax": 6.56, "ay": 3.77, "medal": "none", "sport": "Swimming" },
-        { "ax": 5.53, "ay": 0.96, "medal": "gold", "sport": "Swimming" },
-        { "ax": 7.46, "ay": 4.24, "medal": "bronze", "sport": "Swimming" },
-        { "ax": 7.18, "ay": 1.50, "medal": "none", "sport": "Swimming" },
-        { "ax": 5.08, "ay": 4.19, "medal": "silver", "sport": "Running" },
-        { "ax": 3.81, "ay": 3.69, "medal": "silver", "sport": "Running" },
-        { "ax": 8.78, "ay": 0.69, "medal": "none", "sport": "Running" },
-        { "ax": 6.89, "ay": 3.33, "medal": "gold", "sport": "Running" },
-        { "ax": 3.66, "ay": 1.75, "medal": "none", "sport": "Running" },
-        { "ax": 4.78, "ay": 4.13, "medal": "silver", "sport": "Running" },
-        { "ax": 4.04, "ay": 2.19, "medal": "silver", "sport": "Running" },
-        { "ax": 7.63, "ay": 2.69, "medal": "silver", "sport": "Running" },
-        { "ax": 6.93, "ay": 1.37, "medal": "gold", "sport": "Running" },
-        { "ax": 3.60, "ay": 2.84, "medal": "silver", "sport": "Running" },
-        { "ax": 9.48, "ay": 0.81, "medal": "none", "sport": "Running" },
-        { "ax": 9.72, "ay": 3.95, "medal": "none", "sport": "Running" },
-        { "ax": 1.77, "ay": 2.84, "medal": "silver", "sport": "Running" },
-        { "ax": 1.61, "ay": 1.45, "medal": "gold", "sport": "Running" },
-        { "ax": 6.90, "ay": 3.73, "medal": "bronze", "sport": "Running" },
-        { "ax": 3.06, "ay": 3.50, "medal": "bronze", "sport": "Running" },
-        { "ax": 2.73, "ay": 4.22, "medal": "gold", "sport": "Running" },
-        { "ax": 1.10, "ay": 3.09, "medal": "none", "sport": "Running" },
-        { "ax": 8.68, "ay": 1.97, "medal": "none", "sport": "Running" },
-        { "ax": 5.65, "ay": 4.61, "medal": "silver", "sport": "Running" },
-        { "ax": 3.20, "ay": 0.81, "medal": "silver", "sport": "Cycling" },
-        { "ax": 6.79, "ay": 3.45, "medal": "none", "sport": "Cycling" },
-        { "ax": 7.23, "ay": 0.95, "medal": "none", "sport": "Cycling" },
-        { "ax": 2.51, "ay": 0.76, "medal": "gold", "sport": "Cycling" },
-        { "ax": 5.47, "ay": 2.46, "medal": "silver", "sport": "Cycling" },
-        { "ax": 5.86, "ay": 2.27, "medal": "silver", "sport": "Cycling" },
-        { "ax": 3.88, "ay": 1.24, "medal": "gold", "sport": "Cycling" },
-        { "ax": 9.97, "ay": 1.50, "medal": "none", "sport": "Cycling" },
-        { "ax": 8.50, "ay": 2.82, "medal": "none", "sport": "Cycling" },
-        { "ax": 6.96, "ay": 3.70, "medal": "silver", "sport": "Cycling" },
-        { "ax": 5.84, "ay": 4.90, "medal": "none", "sport": "Cycling" },
-        { "ax": 5.50, "ay": 2.64, "medal": "silver", "sport": "Cycling" },
-        { "ax": 9.65, "ay": 3.01, "medal": "none", "sport": "Cycling" },
-        { "ax": 5.90, "ay": 0.65, "medal": "none", "sport": "Cycling" },
-        { "ax": 1.25, "ay": 1.80, "medal": "gold", "sport": "Cycling" },
-        { "ax": 9.63, "ay": 3.26, "medal": "silver", "sport": "Cycling" },
-        { "ax": 8.90, "ay": 3.21, "medal": "bronze", "sport": "Cycling" },
-        { "ax": 9.43, "ay": 4.07, "medal": "silver", "sport": "Cycling" },
-        { "ax": 5.17, "ay": 4.66, "medal": "gold", "sport": "Cycling" },
-        { "ax": 2.11, "ay": 3.35, "medal": "none", "sport": "Cycling" }
-      ]
 
-      return allData.filter((d) => d.sport === sport);
+      chart.set(
+          "cursor",
+          am5xy.XYCursor.new(this.root, {
+            xAxis: xAxis,
+            yAxis: yAxis,
+            snapToSeries: [this.series]
+          })
+      );
+
+      this.chart = chart;
+
     },
-    async updateChartData(newSport) {
-      if (!newSport) {
-        console.warn("Chart data will not update because no sport is selected.");
+    async fetchData() {
+      if (!this.xAxis || !this.yAxis || !this.selectedCountry || !this.sport || !this.event || this.yearRange.length !== 2) {
+        console.warn("Missing parameters for fetching data.");
         return;
       }
 
-      const data = await this.fetchData(newSport);
-      if (data.length > 0 && this.series) {
-        this.series.data.setAll(data);
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/GetOutliers", {
+          params: {
+            year_lower: this.yearRange[0],
+            year_upper: this.yearRange[1],
+            x_axis_variable: this.xAxis.toLowerCase(),
+            y_axis_variable: this.yAxis.toLowerCase(),
+            sport: this.sport,
+            event: this.event,
+            country_code: this.selectedCountry.code,
+          },
+        });
+
+        const data = response.data;
+
+        let object = Object.entries(data).map(([key, value]) => {
+          const athleteData = value.data;
+
+          const yearMatch = key.match(/\b\d{4}\b/);
+          const year = yearMatch ? yearMatch[0] : null;
+
+          let medal;
+          if (typeof athleteData.highest_medal === "number") {
+            medal = athleteData.highest_medal === 3
+                ? "Gold"
+                : athleteData.highest_medal === 2
+                    ? "Silver"
+                    : athleteData.highest_medal === 1
+                        ? "Bronze"
+                        : "None";
+          } else {
+            medal = athleteData.highest_medal;
+          }
+
+          return {
+            year: year,
+            x: athleteData.x_axis_variable_value,
+            y: athleteData.y_axis_variable_value,
+            name: athleteData.name,
+            medal: medal,
+            outlier: athleteData.outlier || false,
+          };
+        });
+
+        console.log("Processed data object:", object);
+
+        return object;
+
+      } catch (error) {
+        console.error("Failed to fetch data:", error.message);
+        return [];
+      }
+    },
+    async updateChart() {
+      console.log("updateChart");
+      const data = await this.fetchData();
+      if (data && data.length > 0) {
+        this.series.data.setAll(
+            data.map((item) => ({
+              x: item.x,
+              y: item.y,
+              name: item.name,
+              year: item.year,
+              medal: item.medal,
+              outlier: item.outlier,
+              fill: item.outlier
+                  ? am5.color(0xff0000)
+                  : item.medal === "Gold"
+                      ? am5.color(0xffd700)
+                      : item.medal === "Silver"
+                          ? am5.color(0xc0c0c0)
+                          : item.medal === "Bronze"
+                              ? am5.color(0xcd7f32)
+                              : am5.color(0x76bedf),
+            }))
+        );
       } else {
-        console.warn(`No data found for the selected sport: ${newSport}`);
+        console.warn("No data available for the selected parameters.");
+      }
+    },
+    async fetchCountriesIfReady() {
+      if (this.sport && this.event && this.yearRange.length === 2) {
+        await this.fetchCountries();
+      } else {
+        console.warn("Missing required filters: sport, event, or year range.");
+      }
+    },
+    async fetchCountries() {
+      if (this.isFetchingCountries) return;
+
+      this.isFetchingCountries = true;
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/CC2CN", {
+          params: {
+            year_lower: this.yearRange[0],
+            year_upper: this.yearRange[1],
+            sport: this.sport,
+            event: this.event,
+          },
+        });
+        const data = response.data;
+        this.countries = Object.entries(data).map(([code, name]) => ({
+          title: name,
+          props: {"code": code} ,
+        }));
+      } catch (error) {
+        console.error("Failed to fetch countries:", error.message);
+      } finally {
+        this.isFetchingCountries = false;
       }
     },
   },
+  props: {
+    sport: {
+      type: [String, null],
+      required: true,
+    },
+    event: {
+      type: [String, null],
+      required: true,
+    },
+    yearRange: {
+      type: Array,
+      default: () => [1896, 2022],
+    },
+  },
+  watch: {
+    sport: "fetchCountriesIfReady",
+    event: "fetchCountriesIfReady",
+    yearRange: {
+      handler: "fetchCountriesIfReady",
+      immediate: true,
+    },
+    selectedCountry(newCountry) {
+      if (newCountry) {
+        this.selectedCountry = newCountry;
+        this.updateChart();
+      }
+    },
+    xAxis(newAttribute) {
+      if (newAttribute) {
+        this.xAxis = newAttribute;
+        this.updateChart();
+      }
+    },
+    yAxis(newAttribute) {
+      if (newAttribute) {
+        this.yAxis = newAttribute;
+        this.updateChart();
+      }
+    },
+  }
 };
 </script>
 
