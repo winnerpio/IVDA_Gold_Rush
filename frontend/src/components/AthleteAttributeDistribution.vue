@@ -407,10 +407,15 @@ export default {
 
 <style scoped>
 .layout-container {
-  position: relative;
+  top: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  z-index: 1000;
 }
 
 .menu-button {
@@ -451,6 +456,7 @@ export default {
 #mainGraph {
   width: 100%;
   height: auto;
+  display: block;
 }
 
 .fullscreen-panel {

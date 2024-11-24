@@ -285,16 +285,20 @@ export default {
   align-items: center;
   height: 100vh;
   max-height: 100vh;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .v-container {
-  width: 95%; /* Adjust the width as needed */
-  max-width: 1200px; /* Optional: Limit the maximum width */
-  
+  width: 100%; /* Adjust the width as needed */
+  max-width: 100%; /* Optional: Limit the maximum width */
+  justify-content: center;
+  align-items: center;
 }
 
 .v-card {
+  position: relative;
   width: 100%; /* Make the card take the full width of the container */
+  justify-content: center;
+  align-items: center;
 }
 </style>
