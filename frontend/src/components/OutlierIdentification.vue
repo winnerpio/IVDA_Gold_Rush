@@ -55,7 +55,6 @@ export default {
     return {
       xAxis: null,
       yAxis: null,
-      selectedSport: null,
       selectedEvent: null,
       attributes: ["Age", "Height", "Weight", "BMI", "H2W"],
       sports: [],
@@ -64,6 +63,8 @@ export default {
       apiData: [],
       countries: [],
       selectedCountry: null,
+      xAxisLabel: null,
+      yAxisLabel: null,
     };
   },
   mounted() {
@@ -97,11 +98,12 @@ export default {
           })
       );
 
-      xAxis.children.moveValue(am5.Label.new(this.root, {
+      this.xAxisLabel = am5.Label.new(this.root, {
         text: "X-Axis",
         x: am5.p50,
-        centerX: am5.p50
-      }), xAxis.children.length - 1);
+        centerX: am5.p50,
+      });
+      xAxis.children.moveValue(this.xAxisLabel, xAxis.children.length - 1);
 
       const yAxis = chart.yAxes.push(
           am5xy.ValueAxis.new(this.root, {
@@ -111,12 +113,13 @@ export default {
           })
       );
 
-      yAxis.children.moveValue(am5.Label.new(this.root, {
+      this.yAxisLabel = am5.Label.new(this.root, {
         rotation: -90,
         text: "Y-Axis",
         y: am5.p50,
-        centerX: am5.p50
-      }), 0);
+        centerX: am5.p50,
+      });
+      yAxis.children.moveValue(this.yAxisLabel, 0);
 
 
       this.series = chart.series.push(
@@ -139,7 +142,7 @@ export default {
           sprite: am5.Circle.new(root, {
             radius: outlier ? 10 : 6,
             fill: fill,
-            tooltipText: `[bold]Athlete[/]: {name}\n[bold]Year[/]: {year}\n[bold]X[/]: {x}\n[bold]Y[/]: {y}\n[bold]Medal[/]: {medal}\n[bold]Outlier[/]: ${outlier ? "Yes" : "No"}`,
+            tooltipText: `[bold]Athlete[/]: {name}\n[bold]Year[/]: {year}\n[bold]${this.xAxis || "X"}[/]: {x}\n[bold]${this.yAxis || "Y"}[/]: {y}\n[bold]Medal[/]: {medal}\n[bold]Outlier[/]: ${outlier ? "Yes" : "No"}`,
             tooltipY: 0,
           }),
         });
@@ -169,6 +172,14 @@ export default {
 
       this.chart = chart;
 
+    },
+    updateAxisLabels() {
+      if (this.xAxisLabel && this.xAxis) {
+        this.xAxisLabel.set("text", this.xAxis);
+      }
+      if (this.yAxisLabel && this.yAxis) {
+        this.yAxisLabel.set("text", this.yAxis);
+      }
     },
     async fetchData() {
       if (!this.xAxis || !this.yAxis || !this.selectedCountry || !this.sport || !this.event || this.yearRange.length !== 2) {
@@ -230,7 +241,7 @@ export default {
       }
     },
     async updateChart() {
-      console.log("updateChart");
+      this.updateAxisLabels();
       const data = await this.fetchData();
       if (data && data.length > 0) {
         this.series.data.setAll(
@@ -257,6 +268,7 @@ export default {
       }
     },
     async fetchCountriesIfReady() {
+      this.clearChartAndCountry();
       if (this.sport && this.event && this.yearRange.length === 2) {
         await this.fetchCountries();
       } else {
@@ -285,6 +297,12 @@ export default {
         console.error("Failed to fetch countries:", error.message);
       } finally {
         this.isFetchingCountries = false;
+      }
+    },
+    clearChartAndCountry() {
+      if (this.series && this.series.data) {
+        this.series.data.setAll([]);
+        this.selectedCountry = null;
       }
     },
   },
