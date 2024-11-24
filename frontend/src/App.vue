@@ -87,7 +87,7 @@
               <v-card outlined>
                 <v-card-title style="text-align: center; justify-content: center;">Identify Outliers Among Successful Athletes</v-card-title>
                 <v-card-text>
-                  <OutlierIdentification />
+                  <OutlierIdentification :sport="selectedSport" :event="selectedEvent" :yearRange="yearRange" />
                 </v-card-text>
               </v-card>
             </v-container>
