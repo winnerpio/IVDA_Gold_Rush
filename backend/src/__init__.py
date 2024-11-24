@@ -177,7 +177,7 @@ countries: Collection = db["countries"]
 sports_event_years: Collection = db["sports_event_year"]
 api = Api(app)
 
-
+# Legacy Resource
 class WorldMapList(Resource):
     # Return a list of dictionaries {id: iso2, value: total_medals}
     # Possible arguments: None, sport, event
@@ -215,7 +215,7 @@ class WorldMapList(Resource):
         # Return the output as JSON
         return output
         
-
+# Legacy Resource
 class AthleteList(Resource):
     def get(self, args=None):
         # retrieve the arguments and convert to a dict
@@ -316,7 +316,7 @@ def get_medal_count(countries_data, year_lower, year_upper, sport=None, event=No
 
     return result
 
-
+# Legacy Resource
 class MedalCount(Resource):
     def get(self, args=None):
         # Sample usage http://127.0.0.1:5000/MedalCount?year_lower=2000&year_upper=2010
@@ -413,7 +413,6 @@ def get_athletes(athlete_data, year_lower, year_upper, sport=None, event=None, c
             continue
         if country_filter and country_filter != item_country:
             continue
-            # here we add a list of athlete objects
         key = item["name"] + " " + str(year)
 
         if key not in result_dict:
@@ -442,6 +441,7 @@ def get_athletes(athlete_data, year_lower, year_upper, sport=None, event=None, c
 
 
     return result_dict
+
 
 class CountryAthletes(Resource):
     def get(self, args=None):
@@ -655,7 +655,7 @@ class Outliers(Resource):
         x_axis_variable = None
         y_axis_variable = None
         query = {}
-        # If the user specified category is "All" we retrieve all companies
+
         if args == {}:
             args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None, "country_code": None}
         if "sport" in args:
@@ -722,7 +722,7 @@ def get_clustering(
 
         filtered_athletes.append(item)
     
-    # Randomly sampling athletes from sport1, sport2, and sport3
+    # Randomly getting athletes from sport1, sport2, and sport3
     random_athletes = []
     for sport_filter in [sport1, sport2, sport3]:
         sport_athletes = [athlete for athlete in filtered_athletes if athlete["sport"] == sport_filter]
@@ -867,10 +867,8 @@ def get_distribution_data(athlete_data, year_lower, year_upper, sport=None, even
     if bins is None:
         bins = 20
 
-    # Determine the unit for the dist_variable
-    unit = dist_variable2units.get(dist_variable, "")  # Default to empty string if no unit is defined
+    unit = dist_variable2units.get(dist_variable, "")
 
-    # Filter athlete data based on the given criteria
     for item in athlete_data:
         year = int(item["year"])
         country_filter = None
@@ -950,7 +948,6 @@ class Distribution(Resource):
         dist_variable = None
         bins = None
         query = {}
-        # If the user specified category is "All" we retrieve all companies
         if args == {}:
             args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None, "country_code": None}
         if "sport" in args:
@@ -978,7 +975,7 @@ class Distribution(Resource):
         athlete_data = [Athlete(**doc).to_json() for doc in cursor]
 
         result = get_distribution_data(athlete_data, year_lower, year_upper, sport, event, country_code, dist_variable, bins)
-        # Filter
+
         return result
 
 def get_distribution_data2(
@@ -1069,7 +1066,7 @@ class Distribution2(Resource):
         dist_variable = None
         bins = None
         query = {}
-        # If the user specified category is "All" we retrieve all companies
+
         if args == {}:
             args = {'year_lower': 1800, "year_upper": 2024, "sport": None, "event": None, "country_code": None}
         if "sport" in args:
@@ -1097,11 +1094,9 @@ class Distribution2(Resource):
         athlete_data = [Athlete(**doc).to_json() for doc in cursor]
 
         result = get_distribution_data2(athlete_data, year_lower, year_upper, sport, event, country_code, dist_variable, bins)
-        # Filter
+
         return result
 
 
 api.add_resource(Distribution, '/GetDistribution')
 api.add_resource(Distribution2, '/GetDistribution2')
-# api call with input attribute
-# ouptut: distribution and number of medals
