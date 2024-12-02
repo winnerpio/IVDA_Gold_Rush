@@ -1,17 +1,16 @@
 <template>
-  <v-container>
-    <v-row>
-      <!-- Heatmap Display Panel -->
-      <v-col cols="12" md="12">
-        <v-card outlined class="pa-0" fill-height>
-          <v-card-text class="pa-0">
-            <div id="medal-map" style="width: 100%; height: 750px;"></div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+  <div class="layout-container" style="width: 100%; height: 40vh;">
+    <!-- Header -->
+    <div>
+      <h2>Medal Map</h2>
+    </div>
+
+    <div class="graph-container" style="width: 100%; height: calc(100% - 48px);">
+      <div id="medal-map" style="width: 100%; height: 100%;"></div>
+    </div>
+  </div>
 </template>
+
 
 <script>
 import * as am5 from "@amcharts/amcharts5";
@@ -129,6 +128,10 @@ export default {
 <style scoped>
 #medal-map {
   width: 100%;
+  height: 100%;
+}
+
+.fill-height {
   height: 100%;
 }
 </style>

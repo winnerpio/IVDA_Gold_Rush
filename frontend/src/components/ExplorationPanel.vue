@@ -6,39 +6,35 @@
       </v-card-title>
       <v-card-text>
         <v-row no-gutters>
-          <v-col cols="12">
-            <MedalSuccessMap
-              @country-selected="handleCountrySelected"
-              :data="sharedData"
-            />
+          <!-- Medal Map and Athlete Attribute Distribution (Left Column) -->
+          <v-col cols="8">
+            <v-row no-gutters>
+              <v-col cols="12" style="height: 50%;">
+                <MedalSuccessMap
+                    @country-selected="handleCountrySelected"
+                    :data="sharedData"
+                />
+              </v-col>
+              <v-col cols="12" style="height: 50%;">
+                <AthleteAttributeDistribution
+                    :selectedCountry="selectedCountry"
+                    :dateRange="yearRange"
+                    :distributionData="distributionData"
+                    @update:distVariable="handleDistVariableSelection"
+                />
+              </v-col>
+            </v-row>
           </v-col>
-        </v-row>
 
-        <v-row no-gutters>
+          <!-- Medal Tally Histogram (Right Column) -->
           <v-col cols="4">
-            <CountryPerformanceEvolution
-              :event="selectedEvent"
-              :sport="selectedSport"
-              :country="selectedCountry"
-              :dateRange="yearRange"
-              :data="sharedData"
-            />
-          </v-col>
-          <v-col cols="4">
-            <MedalRadialHistogram
-              :country="selectedCountry"
-              :sport="selectedSport"
-              :event="selectedEvent"
-              :dateRange="[1896, 2022]"
-              :data="sharedData"
-            />
-          </v-col>
-          <v-col cols="4">
-            <AthleteAttributeDistribution
-              :selectedCountry="selectedCountry"
-              :dateRange="yearRange"
-              :distributionData="distributionData"
-              @update:distVariable="handleDistVariableSelection"
+            <MedalHistogram
+                style="height: 100%;"
+                :country="selectedCountry"
+                :sport="selectedSport"
+                :event="selectedEvent"
+                :dateRange="[1896, 2022]"
+                :data="sharedData"
             />
           </v-col>
         </v-row>
@@ -47,19 +43,20 @@
   </v-container>
 </template>
 
+
 <script>
 import MedalSuccessMap from "./MedalSuccessMap.vue";
 import AthleteAttributeDistribution from "./AthleteAttributeDistribution.vue";
-import CountryPerformanceEvolution from "./CountryPerformanceEvolution.vue";
-import MedalRadialHistogram from "./MedalRadialHistogram.vue";
+// import CountryPerformanceEvolution from "./CountryPerformanceEvolution.vue";
+import MedalHistogram from "./MedalHistogram.vue";
 
 export default {
   name: "ExplorationPanel",
   components: {
     MedalSuccessMap,
     AthleteAttributeDistribution,
-    CountryPerformanceEvolution,
-    MedalRadialHistogram,
+    // CountryPerformanceEvolution,
+    MedalHistogram: MedalHistogram,
   },
   props: {
     minYear: {

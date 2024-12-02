@@ -1,25 +1,26 @@
 <template>
-  <v-container>
-    <v-col cols="12">
-      <v-card outlined class="pa-0" fill-height>
-        <v-card-title>{{ country.name }} Medal History </v-card-title>
-        <v-card-text class="pa-0">
-          <div id="chartdiv" style="width: 100%; height: 300px;"></div>
+  <v-container class="fill-height" style="height: 100%;">
+    <v-col cols="12" class="fill-height" style="height: 100%;">
+      <v-card outlined class="pa-0 fill-height" style="height: 100%;">
+        <v-card-title>{{ country.name }} Medal History</v-card-title>
+        <v-card-text class="pa-0 fill-height" style="height: calc(100% - 48px);">
+          <!-- Adjust height for card-text to exclude title height -->
+          <div id="chartdiv" style="width: 100%; height: 100%;"></div>
         </v-card-text>
       </v-card>
     </v-col>
   </v-container>
 </template>
 
+
 <script>
-import * as am5radar from "@amcharts/amcharts5/radar";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import {toRaw} from "vue";
 
 export default {
-  name: "MedalRadialHistogram",
+  name: "MedalHistogram",
   data() {
     return {
       chart: null,
@@ -42,69 +43,104 @@ export default {
     initChart() {
       this.root = am5.Root.new("chartdiv");
 
-      this.root.setThemes([am5themes_Animated.new(this.root)]);
+      const myTheme = am5.Theme.new(this.root);
+      myTheme.rule("Grid", ["base"]).setAll({
+        strokeOpacity: 0.1,
+      });
+
+      this.root.setThemes([
+          am5themes_Animated.new(this.root),
+          myTheme
+      ]);
 
       const chart = this.root.container.children.push(
-          am5radar.RadarChart.new(this.root, {
+          am5xy.XYChart.new(this.root, {
             panX: false,
             panY: false,
-            wheelX: "none",
-            wheelY: "none",
-            startAngle: -84,
-            endAngle: 264,
-            innerRadius: am5.percent(40),
+            wheelX: "panY",
+            wheelY: "zoomY",
+            paddingLeft: 0,
+            layout: this.root.verticalLayout,
           })
       );
 
-      const cursor = chart.set(
-          "cursor",
-          am5radar.RadarCursor.new(this.root, {
-            behavior: "zoomX",
+      chart.set(
+          "scrollbarY",
+          am5.Scrollbar.new(this.root, {
+            orientation: "vertical",
           })
       );
-      cursor.lineY.set("forceHidden", true);
 
-      const xRenderer = am5radar.AxisRendererCircular.new(this.root, {
-        minGridDistance: 30,
+      // const cursor = chart.set(
+      //     "cursor",
+      //     am5radar.RadarCursor.new(this.root, {
+      //       behavior: "zoomX",
+      //     })
+      // );
+      // cursor.lineY.set("forceHidden", true);
+
+      const xRenderer = am5xy.AxisRendererX.new(this.root, {
+        minGridDistance: 40,
+        strokeOpacity: 0.1,
       });
-      xRenderer.grid.template.set("forceHidden", true);
 
       const xAxis = chart.xAxes.push(
-          am5xy.CategoryAxis.new(this.root, {
-            maxDeviation: 0,
-            categoryField: "date",
+          am5xy.ValueAxis.new(this.root, {
+            min: 0,
+            maxPrecision: 0,
+            // categoryField: "date",
             renderer: xRenderer,
           })
       );
 
-      const yRenderer = am5radar.AxisRendererRadial.new(this.root, {});
-      yRenderer.labels.template.set("centerX", am5.p50);
+      const yRenderer = am5xy.AxisRendererY.new(this.root, {});
 
       const yAxis = chart.yAxes.push(
-          am5xy.ValueAxis.new(this.root, {
-            maxDeviation: 0.3,
-            min: 0,
+          am5xy.CategoryAxis.new(this.root, {
+            categoryField: "date",
             renderer: yRenderer,
+          })
+      );
+
+      const legend = chart.children.push(
+          am5.Legend.new(this.root, {
+            centerX: am5.p50,
+            x: am5.p50
           })
       );
 
       const createSeries = (name, color) => {
         const series = chart.series.push(
-            am5radar.RadarColumnSeries.new(this.root, {
+            am5xy.ColumnSeries.new(this.root, {
               name: name,
+              stacked: true,
               xAxis: xAxis,
               yAxis: yAxis,
-              valueYField: "value",
-              categoryXField: "category",
+              valueXField: "value",
+              categoryYField: "category",
             })
         );
 
         series.columns.template.setAll({
-          cornerRadius: 5,
-          tooltipText: `{categoryX}: {valueY} ${name}`,
+          tooltipText: `{categoryY}: {valueX} ${name}`,
           fill: am5.color(color),
           stroke: am5.color(color),
         });
+
+        series.bullets.push(() => {
+          return am5.Bullet.new(this.root, {
+            sprite: am5.Label.new(this.root, {
+              text: "{valueX}",
+              fill: this.root.interfaceColors.get("alternativeText"),
+              centerX: am5.p50,
+              centerY: am5.p50,
+              populateText: true,
+              forceHidden: "{valueX} === 0",
+            }),
+          });
+        });
+
+        legend.data.push(series);
 
         return series;
       };
@@ -114,8 +150,35 @@ export default {
       this.series.bronze = createSeries("Bronze", "#CD7F32");
 
       this.chart = chart;
-      this.updateChartData();
+      this.generateRandomData();
+      // this.updateChartData();
       chart.appear(1000, 100);
+    },
+    generateRandomData() {
+      const years = Array.from({ length: 126 }, (_, i) => 1896 + i); // Generate years from 2000 to 2009
+      console.log(years);
+      const randomData = years.map((year) => ({
+        date: year.toString(), // Matches "date" for yAxis data
+        gold: Math.floor(Math.random() * 10),
+        silver: Math.floor(Math.random() * 10),
+        bronze: Math.floor(Math.random() * 10),
+      }));
+
+      // Set data for Y-Axis
+      this.chart.yAxes.getIndex(0).data.setAll(
+          randomData.map((d) => ({ date: d.date }))
+      );
+
+      // Set data for each series
+      this.series.gold.data.setAll(
+          randomData.map((d) => ({ category: d.date, value: d.gold }))
+      );
+      this.series.silver.data.setAll(
+          randomData.map((d) => ({ category: d.date, value: d.silver }))
+      );
+      this.series.bronze.data.setAll(
+          randomData.map((d) => ({ category: d.date, value: d.bronze }))
+      );
     },
     async updateChartData() {
       const filteredData = this.getFilteredData();
@@ -195,6 +258,10 @@ export default {
 <style scoped>
 #chartdiv {
   width: 100%;
+  height: 100%;
+}
+
+.fill-height {
   height: 100%;
 }
 </style>
