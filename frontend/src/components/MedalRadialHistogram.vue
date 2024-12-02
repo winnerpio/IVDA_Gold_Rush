@@ -4,7 +4,7 @@
       <v-card outlined class="pa-0" fill-height>
         <v-card-title>{{ country.name }} Medal History </v-card-title>
         <v-card-text class="pa-0">
-          <div id="chartdiv" style="width: 100%; height: 380px;"></div>
+          <div id="chartdiv" style="width: 100%; height: 300px;"></div>
         </v-card-text>
       </v-card>
     </v-col>

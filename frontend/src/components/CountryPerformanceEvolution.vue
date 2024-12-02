@@ -4,7 +4,7 @@
       <v-card outlined class="pa-0" fill-height>
         <v-card-title>{{ country.name }} Performance Evolution </v-card-title>
         <v-card-text class="pa-0">
-          <div id="country-performance-evolution" style="width: 100%; height: 250px;"></div>
+          <div id="country-performance-evolution" style="width: 100%; height: 300px;"></div>
         </v-card-text>
       </v-card>
     </v-col>
