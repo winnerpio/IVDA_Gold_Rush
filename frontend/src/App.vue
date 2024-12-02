@@ -1,88 +1,87 @@
 <template>
   <v-app>
-    <v-main>
-      <!-- Toolbar -->
-      <v-toolbar>
-        <v-toolbar-title>Gold Rush</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-toolbar-items>
-          <v-btn
-            text
-            @click="activePanel = 'panel1'"
-            :class="{ 'active-btn': activePanel === 'panel1' }"
-          >
-            Exploration
-          </v-btn>
-          <v-btn
-            text
-            @click="activePanel = 'panel2'"
-            :class="{ 'active-btn': activePanel === 'panel2' }"
-          >
-            Comparison
-          </v-btn>
-          <v-btn
-            text
-            @click="activePanel = 'panel3'"
-            :class="{ 'active-btn': activePanel === 'panel3' }"
-          >
-            Outlier Identification
-          </v-btn>
-        </v-toolbar-items>
-      </v-toolbar>
+    <!-- Toolbar -->
+    <v-app-bar app>
+      <v-toolbar-title>Gold Rush</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-toolbar-items>
+        <v-btn
+          text
+          @click="activePanel = 'panel1'"
+          :class="{ 'active-btn': activePanel === 'panel1' }"
+        >
+          Exploration
+        </v-btn>
+        <v-btn
+          text
+          @click="activePanel = 'panel2'"
+          :class="{ 'active-btn': activePanel === 'panel2' }"
+        >
+          Comparison
+        </v-btn>
+        <v-btn
+          text
+          @click="activePanel = 'panel3'"
+          :class="{ 'active-btn': activePanel === 'panel3' }"
+        >
+          Outlier Identification
+        </v-btn>
+      </v-toolbar-items>
+    </v-app-bar>
 
-      <!-- Sidebar -->
-      <OlympicSidebar
-        :minYear="minYear"
-        :maxYear="maxYear"
-        v-model:yearRange="yearRange"
-        @update-sport-event="handleSportEventUpdate"
-        @update-user-data="updateAttributes"
-      />
-
+    <!-- OlympicSidebar -->
+    <OlympicSidebar
+      :minYear="minYear"
+      :maxYear="maxYear"
+      v-model:yearRange="yearRange"
+      @update-sport-event="handleSportEventUpdate"
+      @update-user-data="updateUserAttributes"
+    />
       <!-- Main Content -->
-      <div class="main-content">
-        <!-- Panel 1 -->
-        <div v-if="activePanel === 'panel1'">
-          <ExplorationPanel
-            :minYear="minYear"
-            :maxYear="maxYear"
-            :yearRange="yearRange"
-            :selectedCountry="selectedCountry"
-            :selectedSport="selectedSport"
-            :selectedEvent="selectedEvent"
-            :sharedData="sharedData"
-            :distributionData="distributionData"
-            @update-selected-country="handleCountrySelected"
-            @update-year-range="updateYearRange"
-            @update-sport-event="handleSportEventUpdate"
-            @update-dist-variable="handleDistVariableSelection"
-          />
-        </div>
+      <v-main>
+        <v-container class="main-content" fluid>
+          <!-- Panel 1 -->
+          <div v-if="activePanel === 'panel1'">
+            <ExplorationPanel
+              :minYear="minYear"
+              :maxYear="maxYear"
+              :yearRange="yearRange"
+              :selectedCountry="selectedCountry"
+              :selectedSport="selectedSport"
+              :selectedEvent="selectedEvent"
+              :sharedData="sharedData"
+              :distributionData="distributionData"
+              @update-selected-country="handleCountrySelected"
+              @update-year-range="updateYearRange"
+              @update-sport-event="handleSportEventUpdate"
+              @update-dist-variable="handleDistVariableSelection"
+            />
+          </div>
 
-        <!-- Panel 2 -->
-        <div v-if="activePanel === 'panel2'">
-          <ComparisonPanel
-            :yearRange="yearRange"
-            :userData="userData"
-            :selectedSport="selectedSport"
-            :selectedEvent="selectedEvent"
-            :selectedCountry="selectedCountry"
-            @update-user-attributes="updateUserAttributes"
-            @update-sport-event="handleSportEventUpdate"
-            @update-selected-country="handleCountrySelected"
-          />
-        </div>
+          <!-- Panel 2 -->
+          <div v-if="activePanel === 'panel2'">
+            <ComparisonPanel
+              :yearRange="yearRange"
+              :userData="userData"
+              :selectedSport="selectedSport"
+              :selectedEvent="selectedEvent"
+              :selectedCountry="selectedCountry"
+              @update-user-attributes="updateUserAttributes"
+              @update-sport-event="handleSportEventUpdate"
+              @update-selected-country="handleCountrySelected"
+            />
+          </div>
 
-        <!-- Panel 3 -->
-        <div v-if="activePanel === 'panel3'">
-          <OutlierIdentificationPanel
-            :sport="selectedSport"
-            :event="selectedEvent"
-            :yearRange="yearRange"
-          />
-        </div>
-      </div>
-    </v-main>
+          <!-- Panel 3 -->
+          <div v-if="activePanel === 'panel3'">
+            <OutlierIdentificationPanel
+              :sport="selectedSport"
+              :event="selectedEvent"
+              :yearRange="yearRange"
+            />
+          </div>
+        </v-container>
+      </v-main>
   </v-app>
 </template>
 
@@ -229,30 +228,19 @@ export default {
 
 <style scoped>
 .main-content {
-  margin-left: 350px; /* Adjusted to match the sidebar width */
   padding: 20px;
+  background-color: #fff;
 }
 
 .v-application--wrap {
   min-height: 100vh;
 }
 
-.v-main {
-  padding-top: 64px; /* Height of the toolbar */
-}
-
-.v-container {
-  width: 100%;
-  max-width: 100%;
-  padding: auto;
-  justify-content: center;
-  align-items: center;
-}
-
-.v-card {
-  position: relative;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
+h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 15px;
+  color: #333;
+  text-align: center;
 }
 </style>
