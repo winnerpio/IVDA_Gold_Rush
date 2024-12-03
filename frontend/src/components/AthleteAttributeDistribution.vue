@@ -54,7 +54,7 @@
 
     <!-- Main Graph -->
     <div class="graph-container">
-      <canvas id="mainGraph"></canvas>
+      <canvas id="mainGraph" ref="mainGraph"></canvas>
     </div>
   </div>
 </template>
@@ -84,6 +84,7 @@ export default {
     return {
       selectedAttribute: "age",
       mainGraphInstance: null,
+      isMounted: false,
     };
   },
   computed: {
@@ -108,7 +109,7 @@ export default {
 
       await this.$nextTick(); // Ensure the DOM is updated
 
-      const canvas = document.getElementById("mainGraph");
+      const canvas = this.$refs.mainGraph;
       if (!canvas) {
         console.error("Canvas element not found!");
         return;
@@ -207,6 +208,7 @@ export default {
     distributionData: {
       immediate: true,
       handler() {
+        if (!this.isMounted) return;
         if (this.hasData) {
           this.destroyCharts();
           this.updateMainGraph();
@@ -215,6 +217,13 @@ export default {
         }
       },
     },
+  },
+  mounted() {
+    this.isMounted = true;
+  },
+  beforeUnmount() {
+    this.isMounted = false;
+    this.destroyCharts(); // Clean up the chart instance
   },
 };
 </script>

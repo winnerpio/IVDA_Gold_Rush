@@ -129,7 +129,7 @@ export default {
   },
   methods: {
     async fetchSharedData() {
-      if (!this.yearRange && !this.selectedSport && !this.selectedEvent) {
+      if (!this.yearRange) {
         console.warn("Missing filters for data fetching.");
         return;
       }
@@ -137,14 +137,15 @@ export default {
       this.isLoading = true;
 
       try {
-        const response = await axios.get("http://127.0.0.1:5000/MedalCount", {
-          params: {
-            year_lower: this.yearRange[0],
-            year_upper: this.yearRange[1],
-            sport: this.selectedSport,
-            event: this.selectedEvent,
-          },
-        });
+        const params = {
+          year_lower: this.yearRange[0],
+          year_upper: this.yearRange[1],
+        };
+
+        if (this.selectedSport) params.sport = this.selectedSport;
+        if (this.selectedEvent) params.event = this.selectedEvent;
+
+        const response = await axios.get("http://127.0.0.1:5000/MedalCount", { params });
 
         console.log(response);
         this.sharedData = response.data;
@@ -180,16 +181,21 @@ export default {
       this.isLoading = true;
 
       try {
+        const params = {
+          year_lower: this.yearRange[0],
+          year_upper: this.yearRange[1],
+          dist_variable: this.selectedDistVariable,
+          bins: 10,
+        };
+
+        if (this.selectedSport) params.sport = this.selectedSport;
+        if (this.selectedEvent) params.event = this.selectedEvent;
+        if (this.selectedCountry && this.selectedCountry.code) {
+          params.noc = this.selectedCountry.code;
+        }
+
         const response = await axios.get("http://127.0.0.1:5000/GetDistribution", {
-          params: {
-            year_lower: this.yearRange[0],
-            year_upper: this.yearRange[1],
-            ...(this.selectedSport && { sport: this.selectedSport }),
-            ...(this.selectedEvent && { event: this.selectedEvent }),
-            ...(this.selectedCountry && this.selectedCountry.code && { noc: this.selectedCountry.code }),
-            dist_variable: this.selectedDistVariable,
-            bins: 10,
-          },
+          params,
         });
 
         console.log("Distribution data response:", response);
@@ -202,7 +208,6 @@ export default {
     },
     handleDistVariableSelection(distVariable) {
       this.selectedDistVariable = distVariable;
-      this.fetchDistribution();
     },
   },
   watch: {
@@ -220,6 +225,16 @@ export default {
         this.fetchDistribution();
       } else {
         console.warn("Missing required filters: sport, event, or year range.");
+      }
+    },
+    selectedCountry() {
+      if (this.yearRange && this.yearRange.length === 2) {
+        this.fetchDistribution(); // Fetch data when country changes
+      }
+    },
+    selectedDistVariable() {
+      if (this.yearRange && this.yearRange.length === 2) {
+        this.fetchDistribution(); // Fetch data when attribute changes
       }
     },
   },
