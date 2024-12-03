@@ -27,7 +27,7 @@
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
 
 export default {
   name: "AthleteAttributeDistribution",
@@ -44,6 +44,10 @@ export default {
       type: Object,
       default: () => ({}),
     },
+    selectedDistVariable: {
+      type: String,
+      required: true,
+    },
   },
   setup(props, { emit }) {
     const chartDiv = ref(null);
@@ -52,6 +56,7 @@ export default {
     let xAxis = null;
     let yAxisAthletes = null;
     let yAxisMedals = null;
+    let isChartInitialized = false;
 
     const attributes = [
       { value: "age", label: "Age" },
@@ -61,23 +66,48 @@ export default {
       { value: "h2w", label: "Height-to-Weight Ratio" },
     ];
 
-    const selectedAttribute = ref("age");
+    const selectedAttribute = ref(props.selectedDistVariable);
+
+    // Watch for changes in props.selectedDistVariable
+    watch(
+      () => props.selectedDistVariable,
+      (newVal) => {
+        selectedAttribute.value = newVal;
+      }
+    );
 
     // Emit changes when the selected attribute changes
     watch(selectedAttribute, (newVal) => {
       emit("update:distVariable", newVal);
     });
 
+    watch(
+      () => props.selectedCountry,
+      () => {
+        if (isChartInitialized) {
+          updateChartData();
+        }
+      },
+      { immediate: true }
+    );
+
     // Update chart when distribution data changes
     watch(
       () => props.distributionData,
       () => {
-        updateChartData();
-      }
-      // immediate 옵션 제거
+        if (isChartInitialized) {
+          updateChartData();
+        }
+      },
+      { immediate: true, deep: true }
     );
 
     const createChart = () => {
+      if (isChartInitialized) return;
+      if (!chartDiv.value) {
+        console.error("Chart container element not found!");
+        return;
+      }
       chartRoot = am5.Root.new(chartDiv.value);
       chartRoot.setThemes([am5themes_Animated.new(chartRoot)]);
 
@@ -170,10 +200,12 @@ export default {
 
       // Add cursor
       chart.set("cursor", am5xy.XYCursor.new(chartRoot, {}));
+
+      isChartInitialized = true;
     };
 
     const updateChartData = () => {
-      if (!chart) return;
+      if (!isChartInitialized || !chart) return;
 
       const data = computeChartData();
 
@@ -198,15 +230,25 @@ export default {
       });
     };
 
-    onMounted(async () => {
-      await nextTick();
-      createChart();
-      updateChartData(); // chart 초기화 후에 호출
+    onMounted(() => {
+      watch(
+        () => chartDiv.value,
+        (newVal) => {
+          console.log("chartDiv.value changed:", newVal);
+          if (newVal) {
+            createChart();
+            updateChartData();
+          }
+        },
+        { immediate: true }
+      );
     });
 
     onBeforeUnmount(() => {
       if (chartRoot) {
         chartRoot.dispose();
+        chartRoot = null;
+        isChartInitialized = false;
       }
     });
 
@@ -228,13 +270,20 @@ export default {
   height: 100%;
 }
 
+.layout-container > div > h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
 .attribute-selection {
   display: flex;
+  justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
-  margin-bottom: 10px;
 }
 
 .attribute-selection label {
+  font-size: 18px;
   margin-right: 15px;
 }
 

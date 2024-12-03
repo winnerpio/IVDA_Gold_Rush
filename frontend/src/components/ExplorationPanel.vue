@@ -16,6 +16,7 @@
                     :selectedCountry="selectedCountry"
                     :dateRange="yearRange"
                     :distributionData="distributionData"
+                    :selectedDistVariable="selectedDistVariable"
                     @update:distVariable="handleDistVariableSelection"
                 />
               </v-col>
@@ -85,6 +86,10 @@ export default {
     distributionData: {
       type: Object,
       required: false,
+    },
+    selectedDistVariable: {
+      type: String,
+      required: true,
     },
   },
   methods: {

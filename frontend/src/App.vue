@@ -59,6 +59,7 @@
               :selectedEvent="selectedEvent"
               :sharedData="sharedData"
               :distributionData="distributionData"
+              :selectedDistVariable="selectedDistVariable"
               @update-selected-country="handleCountrySelected"
               @update-year-range="updateYearRange"
               @update-sport-event="handleSportEventUpdate"
@@ -175,8 +176,8 @@ export default {
       console.log('Sport and Event updated:', sport, event);
     },
     handleCountrySelected({ countryName, countryCode }) {
-      this.selectedCountry.name = countryName;
-      this.selectedCountry.code = countryCode;
+      this.selectedCountry = { name: countryName, code: countryCode };
+      console.log("Selected country updated:", this.selectedCountry);
     },
     updateYearRange(range) {
       this.yearRange = range;
@@ -200,13 +201,17 @@ export default {
 
         if (this.selectedSport) params.sport = this.selectedSport;
         if (this.selectedEvent) params.event = this.selectedEvent;
+
         if (this.selectedCountry && this.selectedCountry.code) {
-          params.noc = this.selectedCountry.code;
+          params.country_code = this.selectedCountry.code;
+          console.log("Country code included in params:", params.noc);
+        } else {
+          console.log("No country selected, fetching data for all countries.");
         }
 
-        const response = await axios.get("http://127.0.0.1:5000/GetDistribution", {
-          params,
-        });
+        console.log("Fetching distribution data with params:", params);
+
+        const response = await axios.get("http://127.0.0.1:5000/GetDistribution", { params });
 
         console.log("Distribution data response:", response);
         this.distributionData = response.data;
@@ -239,12 +244,12 @@ export default {
     },
     selectedCountry() {
       if (this.yearRange && this.yearRange.length === 2) {
-        this.fetchDistribution(); // Fetch data when country changes
+        this.fetchDistribution();
       }
     },
     selectedDistVariable() {
       if (this.yearRange && this.yearRange.length === 2) {
-        this.fetchDistribution(); // Fetch data when attribute changes
+        this.fetchDistribution();
       }
     },
   },
