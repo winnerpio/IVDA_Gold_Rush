@@ -1,29 +1,74 @@
 <template>
-  <div ref="athleteClusters" style="width: 100%; height: 500px;">
-    <v-container>
-      <v-card outlined class="pa-5" fill-height>
-        <v-container fluid>
-          <v-row class="chart-row" justify="center" align="center" style="position: relative;">
-            <!-- Chart Container -->
-            <v-col cols="12">
-              <div id="athlete-clusters" style="width: 100%; height: 500px;"></div>
-            </v-col>
-            <!-- Loading Spinner -->
-            <v-col
-                cols="12"
-                v-if="loading"
-                class="d-flex justify-center align-center"
-                style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.8); z-index: 10;"
-            >
-              <!-- Loading spinner or content -->
-              <v-progress-circular indeterminate color="primary"></v-progress-circular>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card>
-    </v-container>
-  </div>
+  <v-container>
+    <v-card outlined class="pa-5" fill-height>
+      <v-container fluid>
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-select
+                :items="attributes"
+                label="X-Axis Attribute"
+                v-model="xAttribute"
+                outlined
+            ></v-select>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-select
+                :items="attributes"
+                label="Y-Axis Attribute"
+                v-model="yAttribute"
+                outlined
+            ></v-select>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12" md="4">
+            <v-select
+                :items="sports"
+                label="Sport 1"
+                v-model="selectedSport1"
+                outlined
+            ></v-select>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-select
+                :items="sports"
+                label="Sport 2"
+                v-model="selectedSport2"
+                outlined
+            ></v-select>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-select
+                :items="sports"
+                label="Sport 3"
+                v-model="selectedSport3"
+                outlined
+            ></v-select>
+          </v-col>
+        </v-row>
+        <v-row class="chart-row" justify="center" align="center" style="position: relative;">
+          <!-- Chart Container -->
+          <v-col cols="12">
+            <div id="athlete-clusters" style="width: 100%; height: 500px;"></div>
+          </v-col>
+          <!-- Loading Spinner -->
+          <v-col
+              cols="12"
+              v-if="loading"
+              class="d-flex justify-center align-center"
+              style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.8); z-index: 10;"
+          >
+            <!-- Loading spinner or content -->
+            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-card>
+  </v-container>
 </template>
+
+
+
 
 <script>
 import * as am5 from "@amcharts/amcharts5";
@@ -35,11 +80,16 @@ export default {
   name: "AthleteClustering",
   data() {
     return {
+      xAttribute: null,
+      yAttribute: null,
       attributes: ["Age", "Height", "Weight", "BMI", "H2W"],
       chart: null,
       series: null,
       colors: ["#4bc0c0", "#ff6384", "#36a2eb"],
       sports: [],
+      selectedSport1: null,
+      selectedSport2: null,
+      selectedSport3: null,
       loading: false,
       userData: {
         sex:'',
@@ -51,25 +101,26 @@ export default {
       },
       xAxisLabel: null,
       yAxisLabel: null,
-      chartInitialized: false,
     };
   },
   watch: {
-    attributeSelection: {
-      handler(newVal) {
-        if (newVal) {
-          if (!this.chartInitialized) {
-            this.initChart();
-            this.chartInitialized = true;
-          }
-          this.updateChartData();
-        }
+    yearRange: {
+      handler(newRange) {
+        this.selectedSport1 = null;
+        this.selectedSport2 = null;
+        this.selectedSport3 = null;
+        this.fetchSports(newRange);
       },
-      deep: true,
       immediate: true,
     },
+    xAttribute: "updateChartData",
+    yAttribute: "updateChartData",
+    selectedSport1: "updateChartData",
+    selectedSport2: "updateChartData",
+    selectedSport3: "updateChartData",
     userDataForm: {
       handler(newUserData) {
+        console.log(newUserData);
         this.userData = { ...newUserData };
         this.updateChartData();
       },
@@ -83,13 +134,9 @@ export default {
       default: () => [1896, 2022],
     },
     userDataForm: {
-      type: Object,
+      type: [Object, null],
       required: true,
-    },
-    attributeSelection: {
-      type: Object,
-      required: true,
-    },
+    }
   },
   methods: {
     async fetchSports(range) {
@@ -102,7 +149,6 @@ export default {
           },
         });
         this.sports = Object.keys(response.data);
-        this.$emit('update-sports', this.sports);
       } catch (error) {
         console.error("Error fetching sports data:", error.message);
       }
@@ -120,11 +166,11 @@ export default {
           params: {
             year_lower: this.yearRange[0],
             year_upper: this.yearRange[1],
-            x_axis_variable: this.attributeSelection.xAttribute?.toLowerCase(),
-            y_axis_variable: this.attributeSelection.yAttribute?.toLowerCase(),
-            sport1: this.attributeSelection.selectedSport1,
-            sport2: this.attributeSelection.selectedSport2,
-            sport3: this.attributeSelection.selectedSport3,
+            x_axis_variable: this.xAttribute?.toLowerCase(),
+            y_axis_variable: this.yAttribute?.toLowerCase(),
+            sport1: this.selectedSport1,
+            sport2: this.selectedSport2,
+            sport3: this.selectedSport3,
             user_age: this.userData.age,
             user_bmi: this.userData.bmi,
             user_height: this.userData.height,
@@ -149,37 +195,20 @@ export default {
       }
     },
     async updateChartData() {
-      if (!this.attributeSelection) {
-        console.warn('attributeSelection is undefined in updateChartData');
-        return;
-      }
-
       this.clearChart();
       this.updateAxisLabels();
-
-      const {
-        xAttribute,
-        yAttribute,
-        selectedSport1,
-        selectedSport2,
-        selectedSport3,
-      } = this.attributeSelection;
-
-      if (!xAttribute || !yAttribute || !selectedSport1 || !selectedSport2 || !selectedSport3) {
+      if (!this.xAttribute || !this.yAttribute || !this.selectedSport1) {
         return;
       }
 
       const data = await this.fetchData();
-      if (data && data.length > 0 && this.series) {
-        this.series.data.setAll(data);
+      if (data){
+        if (data.length > 0 && this.series) {
+          this.series.data.setAll(data);
+        }
       }
     },
     validateInputs() {
-      if (!this.attributeSelection) {
-        console.warn('attributeSelection is undefined in validateInputs');
-        return false;
-      }
-
       const missingFields = [];
 
       Object.entries(this.userData).forEach(([key, value]) => {
@@ -188,19 +217,11 @@ export default {
         }
       });
 
-      const {
-        xAttribute,
-        yAttribute,
-        selectedSport1,
-        selectedSport2,
-        selectedSport3,
-      } = this.attributeSelection;
-
-      if (!xAttribute) missingFields.push("X-Axis Attribute");
-      if (!yAttribute) missingFields.push("Y-Axis Attribute");
-      if (!selectedSport1) missingFields.push("Selected Sport 1");
-      if (!selectedSport2) missingFields.push("Selected Sport 2");
-      if (!selectedSport3) missingFields.push("Selected Sport 3");
+      if (!this.xAttribute) missingFields.push("X-Axis Attribute");
+      if (!this.yAttribute) missingFields.push("Y-Axis Attribute");
+      if (!this.selectedSport1) missingFields.push("Selected Sport 1");
+      if (!this.selectedSport2) missingFields.push("Selected Sport 2");
+      if (!this.selectedSport3) missingFields.push("Selected Sport 3");
 
       if (missingFields.length > 0) {
         console.warn("Missing inputs:", missingFields.join(", "));
@@ -210,11 +231,6 @@ export default {
       return true;
     },
     initChart() {
-      if (!this.$refs.athleteClusters) {
-        console.warn('attributeSelection is undefined in initChart');
-        return;
-      }
-
       this.root = am5.Root.new("athlete-clusters");
       this.root.setThemes([am5themes_Animated.new(this.root)]);
 
@@ -244,18 +260,16 @@ export default {
           })
       );
 
-      const xAttrLabel = this.attributeSelection?.xAttribute || "X-Axis";
       this.xAxisLabel = am5.Label.new(this.root, {
-        text: xAttrLabel,
+        text: this.xAttribute || "X-Axis",
         x: am5.p50,
         centerX: am5.p50,
       });
       xAxis.children.moveValue(this.xAxisLabel, xAxis.children.length - 1);
 
-      const yAttrLabel = this.attributeSelection?.yAttribute || "Y-Axis";
       this.yAxisLabel = am5.Label.new(this.root, {
         rotation: -90,
-        text: yAttrLabel,
+        text: this.yAttribute || "Y-Axis",
         y: am5.p50,
         centerX: am5.p50,
       });
@@ -278,18 +292,13 @@ export default {
         const name = dataItem.dataContext.name;
         const color = am5.color(this.colors[cluster]);
 
-        const xAttr = this.attributeSelection?.xAttribute || "X";
-        const yAttr = this.attributeSelection?.yAttribute || "Y";
-
-        const tooltipText = `[bold]Cluster[/]: {cluster}\n[bold]${xAttr}[/]: {valueX}\n[bold]${yAttr}[/]: {valueY}\n[bold]Athlete[/]: {name}\n[bold]Country[/]: {country}\n[bold]Sport[/]: {sport}\n[bold]Event[/]: {event}`;
-
         if (name === "User") {
           return am5.Bullet.new(root, {
             sprite: am5.Rectangle.new(root, {
               width: 10,
               height: 10,
               fill: color,
-              tooltipText,
+              tooltipText: `[bold]Cluster[/]: {cluster}\n[bold]${this.xAttribute || "X"}[/]: {valueX}\n[bold]${this.yAttribute || "Y"}[/]: {valueY}\n[bold]Athlete[/]: {name}\n[bold]Country[/]: {country}\n[bold]Sport[/]: {sport}\n[bold]Event[/]: {event}`,
             }),
           });
         } else {
@@ -297,11 +306,12 @@ export default {
             sprite: am5.Circle.new(root, {
               fill: color,
               radius: 6,
-              tooltipText,
+              tooltipText: `[bold]Cluster[/]: {cluster}\n[bold]${this.xAttribute || "X"}[/]: {valueX}\n[bold]${this.yAttribute || "Y"}[/]: {valueY}\n[bold]Athlete[/]: {name}\n[bold]Country[/]: {country}\n[bold]Sport[/]: {sport}\n[bold]Event[/]: {event}`,
             }),
           });
         }
       });
+
 
       series.strokes.template.setAll({ visible: false });
 
@@ -316,23 +326,21 @@ export default {
       }
     },
     updateAxisLabels() {
-      if (this.xAxisLabel && this.attributeSelection?.xAttribute) {
-        this.xAxisLabel.set("text", this.attributeSelection.xAttribute);
+      if (this.xAxisLabel && this.xAttribute) {
+        this.xAxisLabel.set("text", this.xAttribute);
       }
-      if (this.yAxisLabel && this.attributeSelection?.yAttribute) {
-        this.yAxisLabel.set("text", this.attributeSelection.yAttribute);
+      if (this.yAxisLabel && this.yAttribute) {
+        this.yAxisLabel.set("text", this.yAttribute);
       }
     },
   },
   mounted() {
-    this.$nextTick(() => {
-      if (this.attributeSelection) {
-        this.initChart();
-        this.chartInitialized = true;
-      } else {
-        console.warn('attributeSelection is undefined in mounted hook');
-      }
-    });
+    this.initChart();
+  },
+  beforeUnmount() {
+    if (this.root) {
+      this.root.dispose();
+    }
   },
 };
 </script>

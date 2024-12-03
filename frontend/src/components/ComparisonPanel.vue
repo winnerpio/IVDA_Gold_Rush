@@ -1,50 +1,45 @@
 <template>
-    <v-container fluid>
-      <v-row>
-        <!-- Attribute Selection Dropdowns -->
-        <v-col cols="12" md="6">
-          <AttributeSelection
-            :attributes="attributes"
-            :sports="sports"
-            @update-selection="updateAttributeSelection"
-          />
-        </v-col>
+  <v-container fluid>
+    <v-row>
+      <!-- Athlete Clustering Graph -->
+      <v-col cols="12" md="6" class="d-flex">
+        <AthleteClustering
+            :yearRange="yearRange"
+            :userDataForm="userAttributes"
+        />
+      </v-col>
 
-        <!-- UserProfile -->
-        <v-col cols="12" md="6">
-          <UserProfile @update-attributes="updateUserAttributes" />
-        </v-col>
-      </v-row>
-  
-      <v-row>
-        <!-- Athlete Clustering Graph -->
-        <v-col cols="12" md="6">
-          <AthleteClustering
-            :yearRange="yearRange"
-            :userDataForm="userAttributes"
-            :attributeSelection="attributeSelection"
-            @update-sports="updateSportsList"
-          />
-        </v-col>
-  
-        <!-- Radar Chart Comparison -->
-        <v-col cols="12" md="6">
-          <RadarChartComparison
-            :sport="selectedSport"
-            :event="selectedEvent"
-            :userDataForm="userAttributes"
-            :yearRange="yearRange"
-          />
-        </v-col>
-      </v-row>
-    </v-container>
-  </template>
-  
-  <script>
+      <!-- UserProfile and Radar Chart Comparison -->
+      <v-col cols="12" md="6" class="d-flex">
+        <v-row>
+          <!-- UserProfile -->
+          <v-col cols="12" class="d-flex pb-0">
+            <UserProfile @update-attributes="updateUserAttributes" />
+          </v-col>
+
+          <!-- Radar Chart Comparison -->
+          <v-col cols="12" class="d-flex pt-0">
+            <RadarChartComparison
+                :sport="selectedSport"
+                :event="selectedEvent"
+                :userDataForm="userAttributes"
+                :yearRange="yearRange"
+            />
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+
+
+
+<script>
   import UserProfile from './UserProfile.vue';
   import AthleteClustering from './AthleteClustering.vue';
   import RadarChartComparison from './RadarChartComparison.vue';
-  import AttributeSelection from './AttributeSelection.vue';
+  // import AttributeSelection from './AttributeSelection.vue';
   
   export default {
     name: 'ComparisonPanel',
@@ -52,7 +47,7 @@
       UserProfile,
       AthleteClustering,
       RadarChartComparison,
-      AttributeSelection,
+      // AttributeSelection,
     },
     data() {
       return {
@@ -64,15 +59,6 @@
           bmi: null,
           h2w: null,
         },
-        attributeSelection: {
-          xAttribute: null,
-          yAttribute: null,
-          selectedSport1: null,
-          selectedSport2: null,
-          selectedSport3: null,
-        },
-        attributes: ['Age', 'Height', 'Weight', 'BMI', 'H2W'],
-        sports: [], // This will be populated from AthleteClustering
       };
     },
     methods: {
@@ -81,9 +67,6 @@
       },
       updateAttributeSelection(selection) {
         this.attributeSelection = { ...selection };
-      },
-      updateSportsList(sportsList) {
-        this.sports = sportsList;
       },
     },
     props: {
@@ -113,7 +96,7 @@
   
   <style>
   .main-content {
-    margin-left: 350px;
+    margin-left: 300px;
   }
   </style>
   

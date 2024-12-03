@@ -1,103 +1,100 @@
 <template>
-  <div class="user-profile" style="width: 100%; height: 250px;">
-    <h2>User Profile</h2>
-    <v-form>
-      <v-container fluid>
-        <v-row>
-          <!-- Sex -->
-          <v-col cols="12" md="4">
-            <v-select
-                :items="sex"
-                v-model="userAttributes.sex"
-                label="Sex"
-                dense
-                outlined
-                hide-details
-                class="field"
-                @blur="submitAttributes"
-                @keydown.enter="handleEnter"
-            />
-          </v-col>
+  <v-container fluid>
+    <v-row>
+      <!-- Title -->
+      <v-col cols="12">
+        <h2>User Profile</h2>
+      </v-col>
+    </v-row>
 
-          <!-- Height -->
-          <v-col cols="12" md="4">
-            <v-text-field
-                v-model="userAttributes.height"
-                label="Height (cm)"
-                type="number"
-                dense
-                outlined
-                hide-details
-                class="field"
-                @blur="calculateDerivedAttributes"
-                @keydown.enter="handleEnter"
-            />
-          </v-col>
+    <v-row>
+      <!-- First Row: Sex, Height, Weight -->
+      <v-col cols="12" md="4">
+        <v-select
+            :items="sex"
+            v-model="userAttributes.sex"
+            label="Sex"
+            dense
+            outlined
+            hide-details
+            class="field"
+            @blur="submitAttributes"
+            @keydown.enter="handleEnter"
+        />
+      </v-col>
 
-          <!-- Weight -->
-          <v-col cols="12" md="4">
-            <v-text-field
-                v-model="userAttributes.weight"
-                label="Weight (kg)"
-                type="number"
-                dense
-                outlined
-                hide-details
-                class="field"
-                @blur="calculateDerivedAttributes"
-                @keydown.enter="handleEnter"
-            />
-          </v-col>
-        </v-row>
+      <v-col cols="12" md="4">
+        <v-text-field
+            v-model="userAttributes.height"
+            label="Height (cm)"
+            type="number"
+            dense
+            outlined
+            hide-details
+            class="field"
+            @blur="calculateDerivedAttributes"
+            @keydown.enter="handleEnter"
+        />
+      </v-col>
 
-        <!-- Second Row -->
-        <v-row>
-          <!-- Age -->
-          <v-col cols="12" md="4">
-            <v-text-field
-                v-model="userAttributes.age"
-                label="Age"
-                type="number"
-                dense
-                outlined
-                hide-details
-                class="field"
-                @blur="submitAttributes"
-                @keydown.enter="handleEnter"
-            />
-          </v-col>
+      <v-col cols="12" md="4">
+        <v-text-field
+            v-model="userAttributes.weight"
+            label="Weight (kg)"
+            type="number"
+            dense
+            outlined
+            hide-details
+            class="field"
+            @blur="calculateDerivedAttributes"
+            @keydown.enter="handleEnter"
+        />
+      </v-col>
+    </v-row>
 
-          <!-- BMI -->
-          <v-col cols="12" md="4">
-            <v-text-field
-                v-model="userAttributes.bmi"
-                label="BMI"
-                type="number"
-                dense
-                outlined
-                hide-details
-                class="field read-only-field"
-                readonly
-            />
-          </v-col>
+    <!-- Second Row: Age, BMI, H2W -->
+    <v-row>
+      <v-col cols="12" md="4">
+        <v-text-field
+            v-model="userAttributes.age"
+            label="Age"
+            type="number"
+            dense
+            outlined
+            hide-details
+            class="field"
+            @blur="submitAttributes"
+            @keydown.enter="handleEnter"
+        />
+      </v-col>
 
-          <!-- H2W -->
-          <v-col cols="12" md="4">
-            <v-text-field
-                v-model="userAttributes.h2w"
-                label="H2W"
-                type="number"
-                dense
-                outlined
-                hide-details
-                class="field read-only-field"
-                readonly
-            />
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-form>
-  </div>
+      <v-col cols="12" md="4">
+        <v-text-field
+            v-model="userAttributes.bmi"
+            label="BMI"
+            type="number"
+            dense
+            outlined
+            hide-details
+            class="field read-only-field"
+            readonly
+        />
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <v-text-field
+            v-model="userAttributes.h2w"
+            label="H2W"
+            type="number"
+            dense
+            outlined
+            hide-details
+            class="field read-only-field"
+            readonly
+        />
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
