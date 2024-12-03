@@ -38,7 +38,7 @@
       @update-user-data="updateUserAttributes"
     />
       <!-- Main Content -->
-      <v-main>
+      <v-main class="d-flex align-start pl-0 pt-10">
         <v-container class="main-content" fluid>
           <!-- Panel 1 -->
           <div v-if="activePanel === 'panel1'">
@@ -258,4 +258,9 @@ h2 {
   color: #333;
   text-align: center;
 }
+
+.main-container {
+  padding: 0 !important;
+}
+
 </style>

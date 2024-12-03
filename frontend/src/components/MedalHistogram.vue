@@ -1,15 +1,15 @@
 <template>
-  <v-container class="fill-height" style="height: 100%;">
-    <v-col cols="12" class="fill-height" style="height: 100%;">
-      <v-card outlined class="pa-0 fill-height" style="height: 100%;">
-        <v-card-title>{{ country.name }} Medal History</v-card-title>
-        <v-card-text class="pa-0 fill-height" style="height: calc(100% - 48px);">
-          <!-- Adjust height for card-text to exclude title height -->
-          <div id="chartdiv" style="width: 100%; height: 100%;"></div>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-container>
+  <div class="layout-container">
+    <!-- Header -->
+    <div>
+      <h2>{{ country.name }} Medal History</h2>
+    </div>
+
+    <!-- Chart Container -->
+    <div class="graph-container" style="width: 100%; height: 85vh">
+      <div id="chartdiv" ></div>
+    </div>
+  </div>
 </template>
 
 
@@ -150,42 +150,15 @@ export default {
       this.series.bronze = createSeries("Bronze", "#CD7F32");
 
       this.chart = chart;
-      this.generateRandomData();
-      // this.updateChartData();
+      this.updateChartData();
       chart.appear(1000, 100);
-    },
-    generateRandomData() {
-      const years = Array.from({ length: 126 }, (_, i) => 1896 + i); // Generate years from 2000 to 2009
-      console.log(years);
-      const randomData = years.map((year) => ({
-        date: year.toString(), // Matches "date" for yAxis data
-        gold: Math.floor(Math.random() * 10),
-        silver: Math.floor(Math.random() * 10),
-        bronze: Math.floor(Math.random() * 10),
-      }));
-
-      // Set data for Y-Axis
-      this.chart.yAxes.getIndex(0).data.setAll(
-          randomData.map((d) => ({ date: d.date }))
-      );
-
-      // Set data for each series
-      this.series.gold.data.setAll(
-          randomData.map((d) => ({ category: d.date, value: d.gold }))
-      );
-      this.series.silver.data.setAll(
-          randomData.map((d) => ({ category: d.date, value: d.silver }))
-      );
-      this.series.bronze.data.setAll(
-          randomData.map((d) => ({ category: d.date, value: d.bronze }))
-      );
     },
     async updateChartData() {
       const filteredData = this.getFilteredData();
 
       if (filteredData.length > 0) {
         const uniqueYears = filteredData.map((d) => d.year.toString());
-        this.chart.xAxes.getIndex(0).data.setAll(uniqueYears.map((year) => ({ date: year })));
+        this.chart.yAxes.getIndex(0).data.setAll(uniqueYears.map((year) => ({ date: year })));
 
         const goldData = filteredData.map((d) => ({ category: d.year.toString(), value: d.gold }));
         const silverData = filteredData.map((d) => ({ category: d.year.toString(), value: d.silver }));

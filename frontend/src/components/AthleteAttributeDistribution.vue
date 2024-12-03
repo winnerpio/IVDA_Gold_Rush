@@ -1,5 +1,5 @@
 <template>
-  <div class="layout-container" style="width: 100%; height: 40vh;">
+  <div class="layout-container" style="width: 100%; height: 35vh;">
     <div>
       <h2>{{ selectedCountry.name }} Athlete Attribute Distribution</h2>
     </div>

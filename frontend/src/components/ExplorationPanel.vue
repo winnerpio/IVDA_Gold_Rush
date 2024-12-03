@@ -1,11 +1,7 @@
 <template>
-  <v-container outlined class="pa-4" fluid>
-    <v-card outlined>
-      <v-card-title class="text-center justify-center">
-        Explore Medal Success and Athlete Attributes
-      </v-card-title>
+  <v-container outlined class="pt-4 pl-0" fluid>
       <v-card-text>
-        <v-row no-gutters>
+        <v-row no-gutters style="height: 100%;">
           <!-- Medal Map and Athlete Attribute Distribution (Left Column) -->
           <v-col cols="8">
             <v-row no-gutters>
@@ -27,7 +23,7 @@
           </v-col>
 
           <!-- Medal Tally Histogram (Right Column) -->
-          <v-col cols="4">
+          <v-col cols="4" class="pl-4">
             <MedalHistogram
                 style="height: 100%;"
                 :country="selectedCountry"
@@ -39,7 +35,6 @@
           </v-col>
         </v-row>
       </v-card-text>
-    </v-card>
   </v-container>
 </template>
 
