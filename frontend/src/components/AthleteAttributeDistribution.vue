@@ -1,67 +1,33 @@
 <template>
-  <div class="layout-container" style="width: 100%; height: 35vh;">
+  <div class="layout-container">
     <div>
-      <h2>{{ selectedCountry.name }} Athlete Attribute Distribution</h2>
+      <h2 v-if="computedSelectedCountry && computedSelectedCountry.name">
+        {{ computedSelectedCountry.name }} Athlete Attribute Distribution
+      </h2>
+      <h2 v-else>Athlete Attribute Distribution</h2>
     </div>
     <!-- Attribute Selection -->
     <div class="attribute-selection">
-      <label class="custom-radio">
+      <label v-for="attribute in attributes" :key="attribute.value">
         <input
           type="radio"
-          value="age"
+          :value="attribute.value"
           v-model="selectedAttribute"
         />
-        <span class="radio-btn"></span>
-        Age
-      </label>
-      <label class="custom-radio">
-        <input
-          type="radio"
-          value="weight"
-          v-model="selectedAttribute"
-        />
-        <span class="radio-btn"></span>
-        Weight
-      </label>
-      <label class="custom-radio">
-        <input
-          type="radio"
-          value="height"
-          v-model="selectedAttribute"
-        />
-        <span class="radio-btn"></span>
-        Height
-      </label>
-      <label class="custom-radio">
-        <input
-          type="radio"
-          value="bmi"
-          v-model="selectedAttribute"
-        />
-        <span class="radio-btn"></span>
-        BMI
-      </label>
-      <label class="custom-radio">
-        <input
-          type="radio"
-          value="h2w"
-          v-model="selectedAttribute"
-        />
-        <span class="radio-btn"></span>
-        Height-to-Weight Ratio
+        {{ attribute.label }}
       </label>
     </div>
 
     <!-- Main Graph -->
-    <div class="graph-container">
-      <canvas id="mainGraph" ref="mainGraph"></canvas>
-    </div>
+    <div class="graph-container" ref="chartDiv"></div>
   </div>
 </template>
 
 <script>
-import { Chart, registerables } from "chart.js";
-Chart.register(...registerables);
+import * as am5 from "@amcharts/amcharts5";
+import * as am5xy from "@amcharts/amcharts5/xy";
+import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from "vue";
 
 export default {
   name: "AthleteAttributeDistribution",
@@ -72,180 +38,200 @@ export default {
     },
     distributionData: {
       type: Object,
-      required: false,
-      default: () => ({}),
+      required: true,
     },
     selectedCountry: {
       type: Object,
-      required: true,
+      default: () => ({}),
     },
   },
-  data() {
-    return {
-      selectedAttribute: "age",
-      mainGraphInstance: null,
-      isMounted: false,
+  setup(props, { emit }) {
+    const chartDiv = ref(null);
+    let chartRoot = null;
+    let chart = null;
+    let xAxis = null;
+    let yAxisAthletes = null;
+    let yAxisMedals = null;
+
+    const attributes = [
+      { value: "age", label: "Age" },
+      { value: "weight", label: "Weight" },
+      { value: "height", label: "Height" },
+      { value: "bmi", label: "BMI" },
+      { value: "h2w", label: "Height-to-Weight Ratio" },
+    ];
+
+    const selectedAttribute = ref("age");
+
+    // Emit changes when the selected attribute changes
+    watch(selectedAttribute, (newVal) => {
+      emit("update:distVariable", newVal);
+    });
+
+    // Update chart when distribution data changes
+    watch(
+      () => props.distributionData,
+      () => {
+        updateChartData();
+      }
+      // immediate 옵션 제거
+    );
+
+    const createChart = () => {
+      chartRoot = am5.Root.new(chartDiv.value);
+      chartRoot.setThemes([am5themes_Animated.new(chartRoot)]);
+
+      chart = chartRoot.container.children.push(
+        am5xy.XYChart.new(chartRoot, {
+          panX: false,
+          panY: false,
+          wheelX: "none",
+          wheelY: "none",
+        })
+      );
+
+      // Create X-axis
+      xAxis = chart.xAxes.push(
+        am5xy.CategoryAxis.new(chartRoot, {
+          categoryField: "group",
+          renderer: am5xy.AxisRendererX.new(chartRoot, {
+            minGridDistance: 30,
+          }),
+          tooltip: am5.Tooltip.new(chartRoot, {}),
+        })
+      );
+
+      // Create Y-axes
+      yAxisAthletes = chart.yAxes.push(
+        am5xy.ValueAxis.new(chartRoot, {
+          renderer: am5xy.AxisRendererY.new(chartRoot, {}),
+          min: 0,
+          extraMax: 0.1,
+          tooltip: am5.Tooltip.new(chartRoot, {}),
+        })
+      );
+
+      yAxisMedals = chart.yAxes.push(
+        am5xy.ValueAxis.new(chartRoot, {
+          renderer: am5xy.AxisRendererY.new(chartRoot, { opposite: true }),
+          min: 0,
+          extraMax: 0.1,
+          syncWithAxis: yAxisAthletes,
+          tooltip: am5.Tooltip.new(chartRoot, {}),
+        })
+      );
+
+      // Create histogram series for athlete counts
+      chart.series.push(
+        am5xy.ColumnSeries.new(chartRoot, {
+          name: "Number of Athletes",
+          xAxis: xAxis,
+          yAxis: yAxisAthletes,
+          valueYField: "athlete_count",
+          categoryXField: "group",
+          tooltip: am5.Tooltip.new(chartRoot, {
+            labelText: "{name}\n{categoryX}: {valueY}",
+          }),
+        })
+      );
+
+      // Create line series for medal counts
+      const medalSeries = chart.series.push(
+        am5xy.LineSeries.new(chartRoot, {
+          name: "Medal Count",
+          xAxis: xAxis,
+          yAxis: yAxisMedals,
+          valueYField: "medal_count",
+          categoryXField: "group",
+          stroke: am5.color(0xff0000),
+          tooltip: am5.Tooltip.new(chartRoot, {
+            labelText: "{name}\n{categoryX}: {valueY}",
+          }),
+        })
+      );
+
+      medalSeries.strokes.template.setAll({ strokeWidth: 2 });
+      medalSeries.bullets.push(() =>
+        am5.Bullet.new(chartRoot, {
+          sprite: am5.Circle.new(chartRoot, {
+            radius: 5,
+            fill: medalSeries.get("fill"),
+          }),
+        })
+      );
+
+      // Add legend
+      chart.children.push(
+        am5.Legend.new(chartRoot, {
+          centerX: am5.percent(50),
+          x: am5.percent(50),
+        })
+      );
+
+      // Add cursor
+      chart.set("cursor", am5xy.XYCursor.new(chartRoot, {}));
     };
-  },
-  computed: {
-    hasData() {
-      return this.attributeGroups.length > 0;
-    },
-    attributeGroups() {
-      return Object.keys(this.distributionData || {});
-    },
-  },
-  methods: {
-    async updateMainGraph() {
-      console.log("Updating main graph with data:", this.distributionData);
-      const { athleteData, medalData } = this.computeAttributeDistribution();
-      const labels = this.attributeGroups;
 
-      // Destroy existing chart instance if it exists
-      if (this.mainGraphInstance) {
-        this.mainGraphInstance.destroy();
-        this.mainGraphInstance = null;
+    const updateChartData = () => {
+      if (!chart) return;
+
+      const data = computeChartData();
+
+      if (xAxis) {
+        xAxis.data.setAll(data);
       }
 
-      await this.$nextTick(); // Ensure the DOM is updated
-
-      const canvas = this.$refs.mainGraph;
-      if (!canvas) {
-        console.error("Canvas element not found!");
-        return;
-      }
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        console.error("Canvas context is null!");
-        return;
-      }
-
-      // Create a new chart
-      this.mainGraphInstance = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              type: "bar",
-              label: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Distribution`,
-              data: athleteData,
-              backgroundColor: "rgba(100, 149, 237, 0.7)",
-              borderColor: "rgba(100, 149, 237, 1)",
-              borderWidth: 1,
-            },
-            {
-              type: "line",
-              label: "Medal Count",
-              data: medalData,
-              borderColor: "rgba(220, 20, 60, 0.8)",
-              backgroundColor: "rgba(220, 20, 60, 0.2)",
-              fill: false,
-              borderWidth: 2,
-              tension: 0.4,
-              yAxisID: "y2",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: "top" },
-            title: {
-              display: true,
-              text: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Distribution and Medal Count`,
-            },
-          },
-          scales: {
-            x: {
-              title: { display: true, text: `${this.selectedAttribute.charAt(0).toUpperCase() + this.selectedAttribute.slice(1)} Groups` },
-            },
-            y: {
-              title: { display: true, text: "Number of Athletes" },
-              beginAtZero: true,
-            },
-            y2: {
-              title: { display: true, text: "Medal Count" },
-              position: "right",
-              beginAtZero: true,
-              grid: { drawOnChartArea: false },
-            },
-          },
-        },
+      chart.series.each((series) => {
+        series.data.setAll(data);
       });
-    },
-    destroyCharts() {
-      // Destroy main graph instance
-      if (this.mainGraphInstance) {
-        this.mainGraphInstance.destroy();
-        this.mainGraphInstance = null;
-      }
-    },
-    computeAttributeDistribution() {
-      const attributeGroups = this.attributeGroups;
-      const athleteData = [];
-      const medalData = [];
+    };
 
-      attributeGroups.forEach((group) => {
-        const groupData = this.distributionData[group];
-        athleteData.push(groupData.athlete_count || 0);
-        medalData.push(groupData.medal_count || 0);
+    const computeChartData = () => {
+      const attributeGroups = Object.keys(props.distributionData || {});
+      return attributeGroups.map((group) => {
+        const groupData = props.distributionData[group] || {};
+        return {
+          group,
+          athlete_count: groupData.athlete_count || 0,
+          medal_count: groupData.medal_count || 0,
+        };
       });
+    };
 
-      return { athleteData, medalData };
-    },
-  },
-  watch: {
-    selectedAttribute: {
-      immediate: true,
-      handler(newVal) {
-        // Emit the selected attribute to the parent component
-        this.$emit('update:distVariable', newVal);
-      },
-    },
-    distributionData: {
-      immediate: true,
-      handler() {
-        if (!this.isMounted) return;
-        if (this.hasData) {
-          this.destroyCharts();
-          this.updateMainGraph();
-        } else {
-          this.destroyCharts();
-        }
-      },
-    },
-  },
-  mounted() {
-    this.isMounted = true;
-  },
-  beforeUnmount() {
-    this.isMounted = false;
-    this.destroyCharts(); // Clean up the chart instance
+    onMounted(async () => {
+      await nextTick();
+      createChart();
+      updateChartData(); // chart 초기화 후에 호출
+    });
+
+    onBeforeUnmount(() => {
+      if (chartRoot) {
+        chartRoot.dispose();
+      }
+    });
+
+    return {
+      chartDiv,
+      attributes,
+      selectedAttribute,
+      computedSelectedCountry: computed(() => props.selectedCountry),
+    };
   },
 };
 </script>
 
-<style>
+<style scoped>
 .layout-container {
-  top: 0;
-  left: 0;
   display: flex;
   flex-direction: column;
   width: 100%;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-  z-index: 1000;
+  height: 100%;
 }
 
 .attribute-selection {
-  margin-bottom: 20px;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .attribute-selection label {
@@ -253,14 +239,7 @@ export default {
 }
 
 .graph-container {
-  width: 100%;
-  max-width: 1200px;
-  margin-bottom: 20px;
-}
-
-#mainGraph {
-  width: 100%;
-  height: auto;
-  display: block;
+  flex: 1;
+  min-height: 400px;
 }
 </style>
