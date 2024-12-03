@@ -1,14 +1,14 @@
 <template>
-  <div class="layout-container" style="width: 100%; height: 35vh;">
-    <!-- Header -->
-    <div>
-      <h2>Medal Map</h2>
-    </div>
+    <div class="layout-container" style="width: 100%; height: 35vh;">
+      <!-- Header -->
+      <div>
+        <h2>Medal Map</h2>
+      </div>
 
-    <div class="graph-container" style="width: 100%; height: calc(100% - 48px);">
-      <div id="medal-map" style="width: 100%; height: 100%;"></div>
+      <div class="graph-container" style="width: 100%; height: calc(100% - 48px);">
+        <div id="medal-map" style="width: 100%; height: 100%;"></div>
+      </div>
     </div>
-  </div>
 </template>
 
 
@@ -106,6 +106,10 @@ export default {
   watch: {
     data: {
       handler(newData) {
+        if (!this.polygonSeries) {
+          console.warn("Polygon series not initialized yet. Data update skipped.");
+          return;
+        }
         if (newData && typeof newData === "object") {
           const transformedData = Object.entries(newData).map(([key, value]) => ({
             id: key,

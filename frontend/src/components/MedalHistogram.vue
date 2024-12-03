@@ -35,8 +35,8 @@ export default {
     this.initChart();
   },
   beforeUnmount() {
-    if (this.chart) {
-      this.chart.dispose();
+    if (this.root) {
+      this.root.dispose();
     }
   },
   methods: {
@@ -70,14 +70,6 @@ export default {
             orientation: "vertical",
           })
       );
-
-      // const cursor = chart.set(
-      //     "cursor",
-      //     am5radar.RadarCursor.new(this.root, {
-      //       behavior: "zoomX",
-      //     })
-      // );
-      // cursor.lineY.set("forceHidden", true);
 
       const xRenderer = am5xy.AxisRendererX.new(this.root, {
         minGridDistance: 40,
