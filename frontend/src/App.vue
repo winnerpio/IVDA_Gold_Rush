@@ -2,27 +2,35 @@
   <v-app>
     <!-- Toolbar -->
     <v-app-bar app>
-      <v-toolbar-title>Gold Rush</v-toolbar-title>
+      <v-img
+          src="./assets/olympic_rings.png"
+          alt="Olympic Rings"
+          max-width="70"
+          max-heihgt="70"
+          contain
+          style="margin-left:20px"
+      ></v-img>
+      <v-toolbar-title>The Gold Rush</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items>
         <v-btn
-          text
-          @click="activePanel = 'panel1'"
-          :class="{ 'active-btn': activePanel === 'panel1' }"
+            text
+            @click="activePanel = 'panel1'"
+            :class="{ 'active-btn': activePanel === 'panel1' }"
         >
           Exploration
         </v-btn>
         <v-btn
-          text
-          @click="activePanel = 'panel2'"
-          :class="{ 'active-btn': activePanel === 'panel2' }"
+            text
+            @click="activePanel = 'panel2'"
+            :class="{ 'active-btn': activePanel === 'panel2' }"
         >
           Comparison
         </v-btn>
         <v-btn
-          text
-          @click="activePanel = 'panel3'"
-          :class="{ 'active-btn': activePanel === 'panel3' }"
+            text
+            @click="activePanel = 'panel3'"
+            :class="{ 'active-btn': activePanel === 'panel3' }"
         >
           Outlier Identification
         </v-btn>
@@ -247,6 +255,16 @@ export default {
   background-color: #fff;
 }
 
+.v-toolbar-title__placeholder {
+  overflow: auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-sidebar {
+  width: 400px !important; /* Override default width */
+}
+
 .v-application--wrap {
   min-height: 100vh;
 }
@@ -259,8 +277,5 @@ h2 {
   text-align: center;
 }
 
-.main-container {
-  padding: 0 !important;
-}
 
 </style>

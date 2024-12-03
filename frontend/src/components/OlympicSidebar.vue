@@ -184,6 +184,11 @@ export default {
     },
   },
   watch: {
+    selectedSport(newSport) {
+      if (newSport) {
+        this.selectedEvent = null; // Reset the event field
+      }
+    },
     selectedEvent(newEvent) {
       if (newEvent) {
         this.$emit("update-sport-event", { sport: this.selectedSport, event: newEvent });
