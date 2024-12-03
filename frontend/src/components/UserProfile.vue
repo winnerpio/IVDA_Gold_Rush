@@ -132,8 +132,10 @@ export default {
       this.submitAttributes();
     },
     submitAttributes() {
-      const updatedAttributes = { ...this.userAttributes };
-      this.$emit("update-attributes", updatedAttributes);
+      if (this.userAttributes.height && this.userAttributes.weight && this.userAttributes.age) {
+        const updatedAttributes = {...this.userAttributes};
+        this.$emit("update-attributes", updatedAttributes);
+      }
     },
     handleEnter(event) {
       this.submitAttributes();

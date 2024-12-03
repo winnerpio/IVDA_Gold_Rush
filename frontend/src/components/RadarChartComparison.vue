@@ -64,12 +64,12 @@ export default {
       countries: [],
       athletes: [],
       userData: {
-        sex: '',
-        height: 175,
-        weight: 70,
-        age: 25,
-        bmi: 10,
-        h2w: 2,
+        sex: null,
+        height: null,
+        weight: null,
+        age: null,
+        bmi: null,
+        h2w: null,
       },
       isFetchingCountries: false,
     };
@@ -295,7 +295,6 @@ export default {
   },
   watch: {
     sport: "fetchCountriesIfReady",
-    event: "fetchCountriesIfReady",
     yearRange: {
       handler: "fetchCountriesIfReady",
       immediate: true,
@@ -314,6 +313,12 @@ export default {
         this.updateChartData();
       },
       deep: true,
+    },
+    event() {
+      this.selectedAthlete = null;
+      this.selectedCountry = null;
+      this.fetchCountriesIfReady();
+      this.series.athlete.data.setAll([]);
     },
 
   }

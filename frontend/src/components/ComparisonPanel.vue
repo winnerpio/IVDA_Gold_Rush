@@ -73,9 +73,6 @@
         },
         attributes: ['Age', 'Height', 'Weight', 'BMI', 'H2W'],
         sports: [], // This will be populated from AthleteClustering
-        selectedSport: null,
-        selectedEvent: null,
-        yearRange: [1896, 2022], // Adjust as needed
       };
     },
     methods: {
@@ -87,6 +84,28 @@
       },
       updateSportsList(sportsList) {
         this.sports = sportsList;
+      },
+    },
+    props: {
+      minYear: {
+        type: Number,
+        required: true,
+      },
+      maxYear: {
+        type: Number,
+        required: true,
+      },
+      yearRange: {
+        type: Array,
+        required: true,
+      },
+      selectedSport: {
+        type: String,
+        required: false,
+      },
+      selectedEvent: {
+        type: String,
+        required: false,
       },
     },
   };

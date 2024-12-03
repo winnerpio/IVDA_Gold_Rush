@@ -70,6 +70,8 @@
           <div v-if="activePanel === 'panel2'">
             <ComparisonPanel
               :yearRange="yearRange"
+              :minYear="minYear"
+              :maxYear="maxYear"
               :userData="userData"
               :selectedSport="selectedSport"
               :selectedEvent="selectedEvent"
