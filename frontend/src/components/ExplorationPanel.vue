@@ -29,7 +29,7 @@
                 :country="selectedCountry"
                 :sport="selectedSport"
                 :event="selectedEvent"
-                :dateRange="[1896, 2022]"
+                :dateRange="[minYear, maxYear]"
                 :data="sharedData"
             />
           </v-col>

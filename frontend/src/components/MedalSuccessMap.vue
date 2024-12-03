@@ -94,7 +94,27 @@ export default {
       });
 
       chart.appear(1000, 100);
+    },
+    updateChartData() {
+      const filteredData = this.getFilteredData();
+      if (this.polygonSeries) {
+        this.polygonSeries.data.setAll(filteredData);
+      } else {
+        console.warn("Polygon series not initialized yet.");
+      }
+    },
+    getFilteredData() {
+      const rawData = this.data;
 
+      if (!rawData || typeof rawData !== "object") {
+        console.warn("Invalid or missing data.");
+        return [];
+      }
+
+      return Object.entries(rawData).map(([countryCode, data]) => ({
+        id: countryCode,
+        value: data.all?.total || 0,
+      }));
     },
   },
   props: {
@@ -104,29 +124,14 @@ export default {
     },
   },
   watch: {
-    data: {
-      handler(newData) {
-        if (!this.polygonSeries) {
-          console.warn("Polygon series not initialized yet. Data update skipped.");
-          return;
-        }
-        if (newData && typeof newData === "object") {
-          const transformedData = Object.entries(newData).map(([key, value]) => ({
-            id: key,
-            value: value.all?.total || 0,
-          }));
-
-          this.polygonSeries.data.setAll(transformedData);
-        } else {
-          console.warn("Invalid data received:", newData);
-        }
+    $props: {
+      handler() {
+        this.updateChartData();
       },
-      immediate: true,
       deep: true,
     },
   },
 };
-
 </script>
 
 <style scoped>

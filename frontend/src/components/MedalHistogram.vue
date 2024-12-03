@@ -145,7 +145,7 @@ export default {
       this.updateChartData();
       chart.appear(1000, 100);
     },
-    async updateChartData() {
+    updateChartData() {
       const filteredData = this.getFilteredData();
 
       if (filteredData.length > 0) {
