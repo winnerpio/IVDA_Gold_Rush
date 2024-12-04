@@ -174,6 +174,31 @@ export default {
           })
       );
 
+      const legend = chart.children.push(
+          am5.Legend.new(this.root, {
+            position: "absolute", // Position of the legend
+            x: am5.p100,
+            y: am5.p0,
+            centerX: am5.p100,
+            centerY: am5.p0,
+          })
+      );
+
+      // Add series to the legend
+      legend.data.setAll([this.series]);
+
+      this.series.events.on("dataitemvalidated", (ev) => {
+        const dataItem = ev.target.dataItem;
+        if (dataItem) {
+          const fill = dataItem.dataContext.fill;
+          legend.data.push({
+            name: `Outliers (${this.xAxis} vs ${this.yAxis})`,
+            fill: fill,
+          });
+        }
+      });
+
+
       this.chart = chart;
 
     },
@@ -235,8 +260,6 @@ export default {
           };
         });
 
-        console.log("Processed data object:", object);
-
         return object;
 
       } catch (error) {
@@ -256,9 +279,7 @@ export default {
               year: item.year,
               medal: item.medal,
               outlier: item.outlier,
-              fill: item.outlier
-                  ? am5.color(0xff0000)
-                  : item.medal === "Gold"
+              fill: item.medal === "Gold"
                       ? am5.color(0xffd700)
                       : item.medal === "Silver"
                           ? am5.color(0xc0c0c0)
