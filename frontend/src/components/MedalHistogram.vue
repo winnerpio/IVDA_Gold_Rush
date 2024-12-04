@@ -6,7 +6,7 @@
     </div>
 
     <!-- Chart Container -->
-    <div class="graph-container" style="width: 100%; height: 85vh">
+    <div class="graph-container" style="width: 100%; height: 80vh">
       <div id="chartdiv" ></div>
     </div>
   </div>

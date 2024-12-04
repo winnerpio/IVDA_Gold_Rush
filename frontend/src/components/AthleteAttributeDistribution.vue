@@ -131,6 +131,12 @@ export default {
         })
       );
 
+      xAxis.get("renderer").labels.template.setAll({
+        rotation: -45,
+        centerY: am5.p50,
+        centerX: am5.p100,
+      });
+
       // Create Y-axes
       yAxisAthletes = chart.yAxes.push(
         am5xy.ValueAxis.new(chartRoot, {
@@ -167,13 +173,16 @@ export default {
 
       // Create line series for medal counts
       const medalSeries = chart.series.push(
-        am5xy.LineSeries.new(chartRoot, {
+        am5xy.SmoothedXLineSeries.new(chartRoot, {
           name: "Medal Count",
           xAxis: xAxis,
           yAxis: yAxisMedals,
           valueYField: "medal_count",
           categoryXField: "group",
           stroke: am5.color(0xff0000),
+          strokeWidth: 2,
+          tension: 0.5,
+          opacity: 1,
           tooltip: am5.Tooltip.new(chartRoot, {
             labelText: "{name}\n{categoryX}: {valueY}",
           }),
