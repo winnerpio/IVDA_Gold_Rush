@@ -1,5 +1,19 @@
 <template>
   <v-container outlined class="pa-4" fluid>
+    <v-row>
+      <v-col cols="12" class="d-flex justify-end pb-6">
+        <!-- Help Button -->
+        <v-btn
+            icon
+            density="compact"
+            @click="openHelpDialog"
+            aria-label="Help"
+            style="font-size: 14px; padding: 4px;"
+        >
+          <v-icon>mdi-help-circle</v-icon>
+        </v-btn>
+      </v-col>
+    </v-row>
     <v-card outlined>
       <v-card-title class="text-center justify-center">
         {{ xAxis || 'X-Axis' }} vs {{ yAxis || 'Y-Axis' }} Outlier Detection
@@ -9,28 +23,29 @@
           <v-row>
             <v-col cols="12" sm="4">
               <v-select
-                v-model="xAxis"
-                :items="attributes"
-                label="X-Axis Attribute"
-                @change="updateChart"
+                  v-model="xAxis"
+                  :items="attributes"
+                  label="X-Axis Attribute"
+                  @change="updateChart"
               ></v-select>
             </v-col>
             <v-col cols="12" sm="4">
               <v-select
-                v-model="yAxis"
-                :items="attributes"
-                label="Y-Axis Attribute"
-                @change="updateChart"
+                  v-model="yAxis"
+                  :items="attributes"
+                  label="Y-Axis Attribute"
+                  @change="updateChart"
               ></v-select>
             </v-col>
             <v-col cols="12" sm="4">
               <v-select
-                label="Select Country"
-                :items="countries"
-                v-model="selectedCountry"
-                item-value="props"
-                item-text="title"
-                @change="updateChart"
+                  label="Select Country"
+                  :items="countries"
+                  v-model="selectedCountry"
+                  item-value="props"
+                  item-text="title"
+                  @change="updateChart"
+                  :disabled="!sport || !event"
               ></v-select>
             </v-col>
           </v-row>
@@ -41,7 +56,40 @@
       </v-card-text>
     </v-card>
   </v-container>
+
+  <v-dialog v-model="helpDialog" max-width="600px">
+    <v-card>
+      <v-card-title class="headline">How to Use the Graph</v-card-title>
+      <v-card-text>
+        <p class="dialog-paragraph">
+          This graph displays outliers for the selected X and Y axis attributes.
+          Each data point represents an athlete, with the X and Y values corresponding to the chosen attributes (e.g., Age, Height, Weight).
+        </p>
+        <li>
+          <strong>X-Axis:</strong> Choose the attribute to display on the X-axis (e.g., Age, Height).
+        </li>
+        <li>
+          <strong>Y-Axis:</strong> Choose the attribute to display on the Y-axis (e.g., Weight, BMI).
+        </li>
+        <li>
+          <strong>Outliers:</strong> Athletes who fall outside the expected range for the selected attributes are marked as outliers (with larger circles).
+        </li>
+        <li>
+          <strong>Year Filter:</strong> Changing the year range dynamically updates the data across all visualizations, including available sports, events, countries and athletes.
+        </li>
+        <li>
+          <strong>Important:</strong> You <strong>must</strong> select both a <strong>sport</strong> and an <strong>event</strong> for the <strong>country</strong> options to appear and to see the data.
+        </li>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="helpDialog = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+
 </template>
+
 
 <script>
 import * as am5 from "@amcharts/amcharts5";
@@ -65,6 +113,7 @@ export default {
       selectedCountry: null,
       xAxisLabel: null,
       yAxisLabel: null,
+      helpDialog: false,
     };
   },
   mounted() {
@@ -173,30 +222,6 @@ export default {
             snapToSeries: [this.series]
           })
       );
-
-      const legend = chart.children.push(
-          am5.Legend.new(this.root, {
-            position: "absolute", // Position of the legend
-            x: am5.p100,
-            y: am5.p0,
-            centerX: am5.p100,
-            centerY: am5.p0,
-          })
-      );
-
-      // Add series to the legend
-      legend.data.setAll([this.series]);
-
-      this.series.events.on("dataitemvalidated", (ev) => {
-        const dataItem = ev.target.dataItem;
-        if (dataItem) {
-          const fill = dataItem.dataContext.fill;
-          legend.data.push({
-            name: `Outliers (${this.xAxis} vs ${this.yAxis})`,
-            fill: fill,
-          });
-        }
-      });
 
 
       this.chart = chart;
@@ -330,6 +355,9 @@ export default {
         this.selectedCountry = null;
       }
     },
+    openHelpDialog() {
+      this.helpDialog = true;
+    },
   },
   props: {
     sport: {
@@ -375,4 +403,7 @@ export default {
 </script>
 
 <style scoped>
+.dialog-paragraph {
+  margin-bottom: 12px;
+}
 </style>

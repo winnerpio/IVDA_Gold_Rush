@@ -1,16 +1,15 @@
 <template>
-    <div class="layout-container" style="width: 100%; height: 35vh;">
-      <!-- Header -->
-      <div>
-        <h2>Medal Map</h2>
-      </div>
-
-      <div class="graph-container" style="width: 100%; height: calc(100% - 48px);">
-        <div id="medal-map" style="width: 100%; height: 100%;"></div>
-      </div>
+  <div class="layout-container" style="width: 100%; height: 35vh;">
+    <!-- Header -->
+    <div class="header" style="text-align: center; margin-bottom: 8px;">
+      <h2>Medal Map</h2>
     </div>
-</template>
 
+    <div class="graph-container" style="width: 100%; height: calc(100% - 48px);">
+      <div id="medal-map" style="width: 100%; height: 100%;"></div>
+    </div>
+  </div>
+</template>
 
 <script>
 import * as am5 from "@amcharts/amcharts5";
@@ -28,6 +27,7 @@ export default {
   },
   mounted() {
     this.initChart();
+    this.updateChartData();
   },
   beforeUnmount() {
     if (this.root) {
@@ -36,6 +36,8 @@ export default {
   },
   methods: {
     initChart() {
+      if (this.root) return;
+
       this.root = am5.Root.new("medal-map");
       this.root.setThemes([am5themes_Animated.new(this.root)]);
 

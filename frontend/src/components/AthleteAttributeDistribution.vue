@@ -37,7 +37,7 @@ export default {
       default: () => [1896, 2023],
     },
     distributionData: {
-      type: Object,
+      type: [Object, null],
       required: true,
     },
     selectedCountry: {
@@ -234,7 +234,6 @@ export default {
       watch(
         () => chartDiv.value,
         (newVal) => {
-          console.log("chartDiv.value changed:", newVal);
           if (newVal) {
             createChart();
             updateChartData();

@@ -1,7 +1,7 @@
 <template>
   <div class="layout-container">
     <!-- Header -->
-    <div>
+    <div class="header" style="text-align: center; margin-bottom: 8px;">
       <h2>{{ country.name }} Medal History</h2>
     </div>
 

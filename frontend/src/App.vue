@@ -158,7 +158,6 @@ export default {
 
         const response = await axios.get("http://127.0.0.1:5000/MedalCount", { params });
 
-        console.log(response);
         this.sharedData = response.data;
       } catch (error) {
         console.error("Error fetching shared data:", error.message);
@@ -168,20 +167,16 @@ export default {
     },
     updateUserAttributes(attributes) {
       this.userData = { ...this.userData, ...attributes };
-      console.log('User attributes updated:', this.userData);
     },
     handleSportEventUpdate({ sport, event }) {
       this.selectedSport = sport;
       this.selectedEvent = event;
-      console.log('Sport and Event updated:', sport, event);
     },
     handleCountrySelected({ countryName, countryCode }) {
       this.selectedCountry = { name: countryName, code: countryCode };
-      console.log("Selected country updated:", this.selectedCountry);
     },
     updateYearRange(range) {
       this.yearRange = range;
-      console.log("Year range updated:", range);
     },
     async fetchDistribution() {
       if (!this.yearRange || !this.selectedDistVariable) {
@@ -204,16 +199,16 @@ export default {
 
         if (this.selectedCountry && this.selectedCountry.code) {
           params.country_code = this.selectedCountry.code;
-          console.log("Country code included in params:", params.noc);
+          // console.log("Country code included in params:", params.noc);
         } else {
-          console.log("No country selected, fetching data for all countries.");
+          // console.log("No country selected, fetching data for all countries.");
         }
 
-        console.log("Fetching distribution data with params:", params);
+        // console.log("Fetching distribution data with params:", params);
 
         const response = await axios.get("http://127.0.0.1:5000/GetDistribution", { params });
 
-        console.log("Distribution data response:", response);
+        // console.log("Distribution data response:", response);
         this.distributionData = response.data;
       } catch (error) {
         console.error("Error fetching distribution data:", error.message);
