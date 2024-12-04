@@ -276,9 +276,10 @@ class SportEventList(Resource):
                 output[sport] = []
             if event not in output[sport]:
                 output[sport].append(event)
-
+                output[sport] = sorted(output[sport]) # Inmediatly sort the events for each sport
+        sorted_output = dict(sorted(output.items()))
         # Return the output as JSON
-        return output
+        return sorted_output
 
 def get_medal_count(countries_data, year_lower, year_upper, sport=None, event=None):
     result = {}
@@ -383,9 +384,9 @@ class CountryCode2CountryName(Resource):
 
         cursor = countries.find()
         countries_data = [Country(**doc).to_json() for doc in cursor]
+        sorted_countries_data = sorted(countries_data, key=lambda item: item["country"])
 
-
-        result = get_cc2cn_dict(countries_data, year_lower, year_upper, sport, event)
+        result = get_cc2cn_dict(sorted_countries_data, year_lower, year_upper, sport, event)
         # Filter
         return result
 
@@ -437,11 +438,11 @@ def get_athletes(athlete_data, year_lower, year_upper, sport=None, event=None, c
             if item_event not in result_dict[key]['events']:
                 result_dict[key]['events'].append(item_event)
             result_dict[key]['medal_count'] += medal_value
-            
-        
+    
+    # Sort by name and secondly by year
+    sorted_result = dict(sorted(result_dict.items(), key=lambda item: (item[1]["name"], item[1]["age"])))
 
-
-    return result_dict
+    return sorted_result
 
 class CountryAthletes(Resource):
     def get(self, args=None):
