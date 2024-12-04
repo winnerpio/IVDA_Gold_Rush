@@ -276,8 +276,8 @@ class SportEventList(Resource):
                 output[sport] = []
             if event not in output[sport]:
                 output[sport].append(event)
-                output[sport] = sorted(output[sport]) # Inmediatly sort the events for each sport
-        sorted_output = dict(sorted(output.items()))
+                
+        sorted_output = {key: sorted(output[key]) for key in sorted(output.keys())} # Sort both event for each sport and the sports
         # Return the output as JSON
         return sorted_output
 
