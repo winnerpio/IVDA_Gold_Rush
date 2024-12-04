@@ -137,6 +137,8 @@ export default {
         centerX: am5.p100,
       });
 
+      xAxis.set("tooltip", null);
+
       // Create Y-axes
       yAxisAthletes = chart.yAxes.push(
         am5xy.ValueAxis.new(chartRoot, {
@@ -147,6 +149,8 @@ export default {
         })
       );
 
+      yAxisAthletes.set("tooltip", null);
+
       yAxisMedals = chart.yAxes.push(
         am5xy.ValueAxis.new(chartRoot, {
           renderer: am5xy.AxisRendererY.new(chartRoot, { opposite: true }),
@@ -156,6 +160,8 @@ export default {
           tooltip: am5.Tooltip.new(chartRoot, {}),
         })
       );
+
+      yAxisMedals.set("tooltip", null);
 
       // Create histogram series for athlete counts
       chart.series.push(
@@ -208,7 +214,9 @@ export default {
       );
 
       // Add cursor
-      chart.set("cursor", am5xy.XYCursor.new(chartRoot, {}));
+      const cursor = chart.set("cursor", am5xy.XYCursor.new(chartRoot, {}));
+      cursor.lineX.set("visible", false);
+      cursor.lineY.set("visible", false);
 
       isChartInitialized = true;
     };
