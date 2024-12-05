@@ -298,6 +298,8 @@ export default {
               width: 10,
               height: 10,
               fill: color,
+              strokeWidth: 2,
+              stroke: am5.color("#000000"),
               tooltipText: `[bold]Cluster[/]: {cluster}\n[bold]${this.xAttribute || "X"}[/]: {valueX}\n[bold]${this.yAttribute || "Y"}[/]: {valueY}\n[bold]Athlete[/]: {name}\n[bold]Country[/]: {country}\n[bold]Sport[/]: {sport}\n[bold]Event[/]: {event}`,
             }),
           });
