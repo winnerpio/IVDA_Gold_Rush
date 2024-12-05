@@ -80,7 +80,6 @@ export default {
           am5xy.ValueAxis.new(this.root, {
             min: 0,
             maxPrecision: 0,
-            // categoryField: "date",
             renderer: xRenderer,
           })
       );

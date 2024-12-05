@@ -57,6 +57,27 @@
     </v-card>
   </v-container>
 
+  <v-dialog v-model="athleteDialog" max-width="600px">
+    <v-card>
+      <v-card-title class="headline">
+        {{ athleteDetails.name }}
+      </v-card-title>
+      <v-card-text>
+        <div v-if="loading" class="d-flex justify-center pa-3">
+          <v-progress-linear
+              indeterminate
+              color="primary"
+          ></v-progress-linear>
+        </div>
+        <p v-else>{{ athleteDetails.info }}</p>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="athleteDialog = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+
   <v-dialog v-model="helpDialog" max-width="600px">
     <v-card>
       <v-card-title class="headline">How to Use the Graph</v-card-title>
@@ -96,6 +117,7 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import axios from "axios";
+import OpenAI from "openai";
 
 export default {
   name: "OutlierIdentificationPanel",
@@ -114,6 +136,12 @@ export default {
       xAxisLabel: null,
       yAxisLabel: null,
       helpDialog: false,
+      athleteDialog: false,
+      athleteDetails: {
+        name: "",
+        info: "",
+      },
+      loading: false,
     };
   },
   mounted() {
@@ -191,7 +219,7 @@ export default {
         const { outlier } = dataItem.dataContext;
         const fill = dataItem.dataContext.fill;
 
-        return am5.Bullet.new(root, {
+        let bullet = am5.Bullet.new(root, {
           sprite: am5.Circle.new(root, {
             radius: outlier ? 10 : 6,
             fill: fill,
@@ -199,6 +227,14 @@ export default {
             tooltipY: 0,
           }),
         });
+
+        bullet.get("sprite").events.on("click", () => {
+          this.fetchAthleteDetails(dataItem.dataContext);
+        });
+
+        return bullet;
+
+
       });
 
       this.series.strokes.template.setAll({
@@ -302,6 +338,9 @@ export default {
               y: item.y,
               name: item.name,
               year: item.year,
+              country: this.selectedCountry.code,
+              sport: this.sport,
+              event: this.event,
               medal: item.medal,
               outlier: item.outlier,
               fill: item.medal === "Gold"
@@ -357,6 +396,54 @@ export default {
     },
     openHelpDialog() {
       this.helpDialog = true;
+    },
+    async fetchAthleteDetails(athleteData) {
+      const { name, year, country, sport, event } = athleteData;
+
+      this.athleteDetails.name = "";
+      this.athleteDetails.info = "";
+
+      this.athleteDialog = true;
+      this.loading = true;
+
+      const openai = new OpenAI({
+        apiKey: process.env.VUE_APP_OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true
+      });
+
+      try {
+        const prompt = `
+          Provide information about the athlete "${name}" who competed in the year "${year}"
+          representing the country with this country code "${country}" in the sport "${sport}"
+          for the event "${event}". The response must follow this format exactly:
+
+          1. Performance: [Brief description of how they performed in that Olympics].
+          2. Funny Fact: [A single, lighthearted or interesting fact about the athlete].
+
+          Keep the response under 200 words and maintain the format.
+        `
+
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: "You are a helpful assistant." },
+            { role: "user", content: prompt },
+          ],
+        });
+
+        const info = response.choices[0]?.message?.content || "Details not available.";
+
+        this.athleteDetails.name = name;
+        this.athleteDetails.info = info;
+        this.athleteDialog = true;
+      } catch (error) {
+        console.error("Failed to fetch athlete details:", error.message);
+        this.athleteDetails.name = "Error";
+        this.athleteDetails.info = "Unable to retrieve details at the moment.";
+        this.athleteDialog = true;
+      } finally {
+        this.loading = false;
+      }
     },
   },
   props: {

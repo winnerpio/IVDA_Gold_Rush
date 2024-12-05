@@ -91,7 +91,6 @@
 <script>
 import MedalSuccessMap from "./MedalSuccessMap.vue";
 import AthleteAttributeDistribution from "./AthleteAttributeDistribution.vue";
-// import CountryPerformanceEvolution from "./CountryPerformanceEvolution.vue";
 import MedalHistogram from "./MedalHistogram.vue";
 
 export default {
@@ -99,7 +98,6 @@ export default {
   components: {
     MedalSuccessMap,
     AthleteAttributeDistribution,
-    // CountryPerformanceEvolution,
     MedalHistogram: MedalHistogram,
   },
   data() {

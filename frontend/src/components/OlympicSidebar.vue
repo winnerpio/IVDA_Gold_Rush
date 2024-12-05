@@ -94,7 +94,6 @@ export default {
       selectedEvent: null,
       sports: [],
       events: [],
-      // Date Range values
       minValue: this.yearRange[0],
       maxValue: this.yearRange[1],
       tempMinValue: this.yearRange[0],
@@ -186,7 +185,7 @@ export default {
   watch: {
     selectedSport(newSport) {
       if (newSport) {
-        this.selectedEvent = null; // Reset the event field
+        this.selectedEvent = null;
       }
     },
     selectedEvent(newEvent) {

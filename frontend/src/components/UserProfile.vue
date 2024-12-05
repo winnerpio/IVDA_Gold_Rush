@@ -118,7 +118,7 @@ export default {
       const { height, weight } = this.userAttributes;
 
       if (height && weight) {
-        const heightInMeters = height / 100; // Convert cm to meters
+        const heightInMeters = height / 100;
         this.userAttributes.bmi = (weight / (heightInMeters ** 2)).toFixed(2);
         this.userAttributes.h2w = (height / weight).toFixed(2);
       } else {

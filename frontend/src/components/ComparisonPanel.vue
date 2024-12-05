@@ -81,15 +81,13 @@
   import UserProfile from './UserProfile.vue';
   import AthleteClustering from './AthleteClustering.vue';
   import RadarChartComparison from './RadarChartComparison.vue';
-  // import AttributeSelection from './AttributeSelection.vue';
-  
+
   export default {
     name: 'ComparisonPanel',
     components: {
       UserProfile,
       AthleteClustering,
       RadarChartComparison,
-      // AttributeSelection,
     },
     data() {
       return {
