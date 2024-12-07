@@ -238,6 +238,14 @@ class AthleteList(Resource):
         if 'age' in args:
             query['age'] = int(args['age'])
 
+        if 'name' in args:
+            query['name'] = {'$regex': args['name'], '$options': 'i'}
+        if 'sex' in args:
+            query['sex'] = args['sex']
+        if 'medal' in args:
+            query['medal'] = args['medal']
+
+
         cursor = athletes.find(query)
         # Filter
         return [Athlete(**doc).to_json() for doc in cursor]
