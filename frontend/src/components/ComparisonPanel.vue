@@ -17,7 +17,11 @@
     <v-row>
       <!-- Athlete Clustering Graph -->
       <v-col cols="12" md="6" class="d-flex">
-        <AthleteClustering :yearRange="yearRange" :userDataForm="userAttributes" />
+        <AthleteClustering
+          :yearRange="yearRange"
+          :userDataForm="userAttributes"
+          @point-selected="handlePointSelection"
+        />
       </v-col>
 
       <!-- UserProfile and Radar Chart Comparison -->
@@ -31,10 +35,11 @@
           <!-- Radar Chart Comparison -->
           <v-col cols="12" class="d-flex pt-0">
             <RadarChartComparison
-                :sport="selectedSport"
-                :event="selectedEvent"
-                :userDataForm="userAttributes"
-                :yearRange="yearRange"
+              :sport="selectedSport"
+              :event="selectedEvent"
+              :userDataForm="userAttributes"
+              :yearRange="yearRange"
+              :selectedPoint="selectedPoint"
             />
           </v-col>
         </v-row>
@@ -99,12 +104,17 @@
           bmi: null,
           h2w: null,
         },
+        selectedPoint: null,
         helpDialog: false,
       };
     },
     methods: {
       updateUserAttributes(attributes) {
         this.userAttributes = { ...attributes };
+      },
+      handlePointSelection(data) {
+        console.log("Athlete data received in ComparisonPanel:", data);
+        this.selectedPoint = data; // Save selected data
       },
       openHelpDialog() {
         this.helpDialog = true;

@@ -202,10 +202,18 @@ export default {
       }
 
       const data = await this.fetchData();
-      if (data){
-        if (data.length > 0 && this.series) {
-          this.series.data.setAll(data);
-        }
+      if (data) {
+        this.series.data.setAll(data);
+
+        // Attach click event to series' bullets (points)
+        this.series.bulletsContainer.events.on("click", (ev) => {
+          const dataItem = ev.target.dataItem;
+          if (dataItem) {
+            const athleteData = dataItem.dataContext;
+            console.log("Athlete clicked:", athleteData); // Debug
+            this.$emit("athlete-selected", athleteData); // Emit athlete data
+          }
+        });
       }
     },
     validateInputs() {
@@ -292,25 +300,36 @@ export default {
         const name = dataItem.dataContext.name;
         const color = am5.color(this.colors[cluster]);
 
+        // Check if the point is the "User" or not
         if (name === "User") {
-          return am5.Bullet.new(root, {
-            sprite: am5.Rectangle.new(root, {
-              width: 10,
-              height: 10,
-              fill: color,
-              strokeWidth: 2,
-              stroke: am5.color("#000000"),
-              tooltipText: `[bold]Cluster[/]: {cluster}\n[bold]${this.xAttribute || "X"}[/]: {valueX}\n[bold]${this.yAttribute || "Y"}[/]: {valueY}\n[bold]Athlete[/]: {name}\n[bold]Country[/]: {country}\n[bold]Sport[/]: {sport}\n[bold]Event[/]: {event}`,
-            }),
+          const rectangle = am5.Rectangle.new(root, {
+            width: 10,
+            height: 10,
+            fill: color,
+            strokeWidth: 2,
+            stroke: am5.color("#000000"),
+            tooltipText: `[bold]Cluster[/]: {cluster}\n[bold]${this.xAttribute || "X"}[/]: {valueX}\n[bold]${this.yAttribute || "Y"}[/]: {valueY}\n[bold]Athlete[/]: {name}\n[bold]Country[/]: {country}\n[bold]Sport[/]: {sport}\n[bold]Event[/]: {event}`,
           });
+
+          // Add click event listener
+          rectangle.events.on("click", () => {
+            this.$emit("point-selected", dataItem.dataContext);
+          });
+
+          return am5.Bullet.new(root, { sprite: rectangle });
         } else {
-          return am5.Bullet.new(root, {
-            sprite: am5.Circle.new(root, {
-              fill: color,
-              radius: 6,
-              tooltipText: `[bold]Cluster[/]: {cluster}\n[bold]${this.xAttribute || "X"}[/]: {valueX}\n[bold]${this.yAttribute || "Y"}[/]: {valueY}\n[bold]Athlete[/]: {name}\n[bold]Country[/]: {country}\n[bold]Sport[/]: {sport}\n[bold]Event[/]: {event}`,
-            }),
+          const circle = am5.Circle.new(root, {
+            fill: color,
+            radius: 6,
+            tooltipText: `[bold]Cluster[/]: {cluster}\n[bold]${this.xAttribute || "X"}[/]: {valueX}\n[bold]${this.yAttribute || "Y"}[/]: {valueY}\n[bold]Athlete[/]: {name}\n[bold]Country[/]: {country}\n[bold]Sport[/]: {sport}\n[bold]Event[/]: {event}`,
           });
+
+          // Add click event listener
+          circle.events.on("click", () => {
+            this.$emit("point-selected", dataItem.dataContext);
+          });
+
+          return am5.Bullet.new(root, { sprite: circle });
         }
       });
 

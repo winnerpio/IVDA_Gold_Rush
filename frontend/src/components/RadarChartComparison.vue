@@ -274,6 +274,57 @@ export default {
         this.isFetchingCountries = false;
       }
     },
+    async fetchAthleteDetails(point) {
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/athletes", {
+          params: {
+            name: point.name,
+            country: point.country,
+          },
+        });
+        const athleteData = response.data[0]; // Assuming the first result is relevant
+        console.log("Fetched Athlete Data:", athleteData);
+        this.updateRadarChart(athleteData);
+      } catch (error) {
+        console.error("Error fetching athlete details:", error.message);
+      }
+    },
+    updateRadarChart(athleteData) {
+      const labels = ["Height", "Weight", "Age", "BMI", "H2W"];
+      const athleteDataset = [
+        athleteData.height,
+        athleteData.weight,
+        athleteData.age,
+        athleteData.bmi,
+        athleteData.h2w,
+      ];
+
+      const userDataset = [
+        this.userData.height,
+        this.userData.weight,
+        this.userData.age,
+        this.userData.bmi,
+        this.userData.h2w,
+      ];
+
+      const data = labels.map((label, i) => ({
+        category: label,
+        athlete: athleteDataset[i],
+        user: userDataset[i],
+      }));
+
+      console.log("Radar Chart Data:", data);
+
+      if (this.chart) {
+        const xAxis = this.chart.xAxes.getIndex(0);
+        if (xAxis) {
+          xAxis.data.setAll(data);
+        }
+
+        this.series.user.data.setAll(data);
+        this.series.athlete.data.setAll(data);
+      }
+    },
   },
   props: {
     sport: {
@@ -291,6 +342,10 @@ export default {
     yearRange: {
       type: Array,
       default: () => [1896, 2022],
+    },
+    selectedPoint: {
+      type: [Object, null],
+      required: false, // Data of the clicked scatterplot point
     },
   },
   watch: {
@@ -320,7 +375,14 @@ export default {
       this.fetchCountriesIfReady();
       this.series.athlete.data.setAll([]);
     },
-
+    selectedPoint: {
+      handler(newPoint) {
+        if (newPoint) {
+          this.fetchAthleteDetails(newPoint);
+        }
+      },
+      immediate: true,
+    },
   }
 }
 </script>
